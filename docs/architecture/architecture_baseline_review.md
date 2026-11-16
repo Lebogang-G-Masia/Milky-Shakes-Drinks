@@ -1,0 +1,12 @@
+# Architecture baseline review
+
+| Account Registration & Authentication | **FR-001**             | Provisioning secure user credentials, password hashing, and session/token lifecycle management.                                                                         |
+| :------------------------------------ | :--------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Order Placement & Customization       | **FR-002**             | Transactional order state machine (Draft $\rightarrow$ Placed $\rightarrow$ In Prep $\rightarrow$ Ready $\rightarrow$ Completed). Input validation on flavors/toppings. |
+| Fulfillment Mode (Pickup vs Delivery) | **FR-003**             | Conditional validation logic (pickup slots vs delivery address/contact).                                                                                                |
+| Payment Processing & Receipts         | **FR-004**             | External payment integration, receipt generation, idempotent transaction processing, and reconciliation.                                                                |
+| Management Audit & Clever Reporting   | **FR-005**             | Controlled analytical read-queries, aggregation views, and non-blocking multi-criteria filters without leaking raw tables to the UI.                                    |
+| Usability                             | **NFR-001**            | Responsive, decoupled frontend interface with declarative client validation and clear error propagation.                                                                |
+| Authorization & Security              | **NFR-002**            | Single trusted security boundary on backend endpoints; role-based access control (RBAC) middleware; principle of least privilege.                                       |
+| Auditability                          | **NFR-003**            | Immutable append-only audit trail mechanism decoupled from domain update paths or triggered atomically on state changes.                                                |
+| Secrets & Configuration               | **NFR-004**            | 12-factor application configuration; externalized environment variable loading and secret shielding.                                                                    |
