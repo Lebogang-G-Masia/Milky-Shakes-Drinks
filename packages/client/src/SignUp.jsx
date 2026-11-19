@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { supabase } from "./supabaseClient";
 
-export default function SignUp({ onSwitch }) {
+export default function SignUp({ onSwitch, onSuccess }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,18 +28,40 @@ export default function SignUp({ onSwitch }) {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      });
+      // 1. Check if user already exists in p_user
+      const { data: existing, error: checkError } = await supabase
+        .from("p_user")
+        .select("id")
+        .eq("email", email.trim())
+        .maybeSingle();
 
-      if (!res.ok) throw new Error("Could not create your account.");
+      if (checkError) throw checkError;
+      if (existing) {
+        throw new Error("An account with this email or username already exists.");
+      }
 
-      const data = await res.json();
-      console.log("Signed up:", data);
+      // 2. Insert new user into p_user
+      const { data, error: insertError } = await supabase
+        .from("p_user")
+        .insert([{ email: email.trim(), password }])
+        .select()
+        .single();
+
+      if (insertError) {
+        if (insertError.code === "42501") {
+          throw new Error(
+            "Row-Level Security: Please run the INSERT policy in Supabase SQL editor to allow sign-ups."
+          );
+        }
+        throw insertError;
+      }
+
+      console.log("Account created successfully:", data);
+      if (onSuccess) {
+        onSuccess(data);
+      }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Could not create your account.");
     } finally {
       setLoading(false);
     }
@@ -57,13 +80,13 @@ export default function SignUp({ onSwitch }) {
         autoComplete="name"
       />
 
-      <label htmlFor="signup-email">Email</label>
+      <label htmlFor="signup-email">Email or Username</label>
       <input
         id="signup-email"
-        type="email"
+        type="text"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        autoComplete="email"
+        autoComplete="username"
       />
 
       <label htmlFor="signup-password">Password</label>
