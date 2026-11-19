@@ -1,0 +1,14 @@
+{
+  "name": "milky-shakes-drinks",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@milky-shakes/client",
+    "dev:api": "npm run dev --workspace=@milky-shakes/api",
+    "build": "npm run build --workspaces --if-present",
+    "preview": "npm run preview --workspace=@milky-shakes/client"
+  }
+}

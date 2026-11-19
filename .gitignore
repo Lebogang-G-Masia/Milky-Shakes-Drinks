@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build & Vite artifacts
+dist/
+.vite/
+.vercel/
+
+# Environment Variables & Secrets (12-factor)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS & Editor files
+.DS_Store
+*.swp
+*.swo

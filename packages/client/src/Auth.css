@@ -1,0 +1,124 @@
+:root {
+  --cream: #F3ECE0;
+  --sand: #D9C3A5;
+  --ink: #3B2F24;
+  --sand-dark: #B89B74;
+  --error: #8B2E1F;
+}
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--ink);
+}
+
+/* The card: both panels share one grid cell */
+.auth-card {
+  display: grid;
+  width: 100%;
+  max-width: 340px;
+  margin: 4rem auto;
+  padding: 2rem;
+  box-sizing: border-box;
+  background: var(--sand);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(59, 47, 36, 0.12);
+  overflow: hidden;
+}
+
+.panel {
+  grid-area: 1 / 1; /* stack on top of each other */
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.panel.active {
+  opacity: 1;
+  transform: none;
+}
+
+.panel.exit-left {
+  opacity: 0;
+  transform: translateX(-32px);
+  pointer-events: none;
+}
+
+.panel.exit-right {
+  opacity: 0;
+  transform: translateX(32px);
+  pointer-events: none;
+}
+
+/* Form styles */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.auth-form h1 {
+  margin: 0 0 0.5rem;
+}
+
+.auth-form input {
+  padding: 0.6rem;
+  background: var(--cream);
+  color: var(--ink);
+  border: 1px solid var(--sand-dark);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.auth-form input:focus {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.auth-form button[type="submit"] {
+  padding: 0.7rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--cream);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.auth-form button[type="submit"]:hover:not(:disabled) {
+  background: #54443A;
+}
+
+.auth-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.switch {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.error {
+  color: var(--error);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    transition: opacity 0.1s linear;
+    transform: none !important;
+  }
+}
