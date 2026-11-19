@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { supabase } from "./supabaseClient";
 
-export default function Login( { onSwitch } ) {
+export default function Login({ onSwitch, onSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -17,19 +18,23 @@ export default function Login( { onSwitch } ) {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      // Query p_user table in Supabase
+      const { data, error: dbError } = await supabase
+        .from("p_user")
+        .select("*")
+        .eq("email", email.trim())
+        .eq("password", password)
+        .maybeSingle();
 
-      if (!res.ok) throw new Error("Invalid email or password.");
+      if (dbError) throw dbError;
+      if (!data) throw new Error("Invalid email or password.");
 
-      const data = await res.json();
-      console.log("Logged in:", data);
-      // store the token / redirect here
+      console.log("Logged in successfully:", data);
+      if (onSuccess) {
+        onSuccess(data);
+      }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Failed to sign in.");
     } finally {
       setLoading(false);
     }
@@ -42,10 +47,11 @@ export default function Login( { onSwitch } ) {
       <label htmlFor="email">Email</label>
       <input
         id="email"
-        type="email"
+        type="text"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        autoComplete="email"
+        autoComplete="username"
+        placeholder="e.g. customer-1"
       />
 
       <label htmlFor="password">Password</label>
@@ -66,7 +72,7 @@ export default function Login( { onSwitch } ) {
       <p className="switch">
         New here?{" "}
         <button type="button" className="link" onClick={onSwitch}>
-        Create an account
+          Create an account
         </button>
       </p>
     </form>

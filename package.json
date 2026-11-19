@@ -10,5 +10,9 @@
     "dev:api": "npm run dev --workspace=@milky-shakes/api",
     "build": "npm run build --workspaces --if-present",
     "preview": "npm run preview --workspace=@milky-shakes/client"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.1"
   }
 }
