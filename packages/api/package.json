@@ -1,0 +1,20 @@
+{
+  "name": "@milky-shakes/api",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "build": "node -e \"console.log('@milky-shakes/api ready')\"",
+    "dev": "node src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@milky-shakes/shared": "*",
+    "@milky-shakes/database": "*",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
