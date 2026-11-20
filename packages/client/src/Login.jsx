@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "./supabaseClient";
+import { hashPassword } from "./SignUp";
 
 export default function Login({ onSwitch, onSuccess }) {
   const [email, setEmail] = useState("");
@@ -18,20 +19,34 @@ export default function Login({ onSwitch, onSuccess }) {
 
     setLoading(true);
     try {
-      // Query p_user table in Supabase
-      const { data, error: dbError } = await supabase
-        .from("p_user")
+      const normalizedEmail = email.trim().toLowerCase();
+
+      // Query users table in Supabase
+      const { data: user, error: dbError } = await supabase
+        .from("users")
         .select("*")
-        .eq("email", email.trim())
-        .eq("password", password)
+        .eq("email", normalizedEmail)
         .maybeSingle();
 
       if (dbError) throw dbError;
-      if (!data) throw new Error("Invalid email or password.");
+      if (!user) throw new Error("Invalid email or password.");
 
-      console.log("Logged in successfully:", data);
+      if (user.is_active === false) {
+        throw new Error("This account is inactive. Please contact support.");
+      }
+
+      // Verify password hash (with fallback to plain text if legacy rows exist)
+      const inputHash = await hashPassword(password);
+      const passwordMatches =
+        user.password_hash === inputHash || user.password_hash === password;
+
+      if (!passwordMatches) {
+        throw new Error("Invalid email or password.");
+      }
+
+      console.log("Logged in successfully from users table:", user);
       if (onSuccess) {
-        onSuccess(data);
+        onSuccess(user);
       }
     } catch (err) {
       setError(err.message || "Failed to sign in.");
@@ -47,11 +62,11 @@ export default function Login({ onSwitch, onSuccess }) {
       <label htmlFor="email">Email</label>
       <input
         id="email"
-        type="text"
+        type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         autoComplete="username"
-        placeholder="e.g. customer-1"
+        placeholder="e.g. alex@example.com"
       />
 
       <label htmlFor="password">Password</label>
