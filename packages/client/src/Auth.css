@@ -16,7 +16,7 @@ body {
 .auth-card {
   display: grid;
   width: 100%;
-  max-width: 340px;
+  max-width: 380px;
   margin: 4rem auto;
   padding: 2rem;
   box-sizing: border-box;
@@ -59,7 +59,8 @@ body {
   margin: 0 0 0.5rem;
 }
 
-.auth-form input {
+.auth-form input,
+.auth-form select {
   padding: 0.6rem;
   background: var(--cream);
   color: var(--ink);
@@ -68,7 +69,8 @@ body {
   font-size: 1rem;
 }
 
-.auth-form input:focus {
+.auth-form input:focus,
+.auth-form select:focus {
   outline: 2px solid var(--ink);
   outline-offset: 1px;
 }

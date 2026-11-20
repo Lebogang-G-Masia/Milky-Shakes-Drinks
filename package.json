@@ -9,6 +9,7 @@
     "dev": "npm run dev --workspace=@milky-shakes/client",
     "dev:api": "npm run dev --workspace=@milky-shakes/api",
     "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
     "preview": "npm run preview --workspace=@milky-shakes/client"
   },
   "dependencies": {
