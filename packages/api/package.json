@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "node -e \"console.log('@milky-shakes/api ready')\"",
+    "test": "node --test __tests__/*.test.js",
     "dev": "node src/server.js",
     "start": "node src/server.js"
   },
