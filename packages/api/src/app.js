@@ -98,6 +98,11 @@ app.post('/api/orders', (req, res) => {
     id: orderId,
     userId: userId || 'anonymous',
     status: ORDER_STATUS.PENDING_PAYMENT,
+    fulfillment: orderData.fulfillment || {
+      mode: orderData.fulfillmentMode || 'PICKUP',
+      restaurantId: orderData.restaurantId,
+      pickupTime: orderData.pickupTime,
+    },
     drinksCount: orderData.drinks.length,
     drinks: orderData.drinks,
     subtotal: totals.subtotal,
