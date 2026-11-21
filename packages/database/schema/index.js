@@ -25,4 +25,5 @@ export const customEnums = {
     'CANCELLED',
   ],
   PAYMENT_STATUS: ['PENDING', 'SUCCESS', 'FAILED', 'REFUNDED'],
+  FULFILLMENT_MODE: ['PICKUP', 'DELIVERY'],
 };
