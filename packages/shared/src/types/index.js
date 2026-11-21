@@ -61,4 +61,36 @@
  * @property {string} [created_at]
  */
 
+/**
+ * @typedef {Object} PaymentRecord
+ * @property {string} [id]
+ * @property {string} order_id
+ * @property {string} transaction_reference
+ * @property {string} payment_gateway
+ * @property {number} amount
+ * @property {string} currency
+ * @property {'PENDING'|'SUCCESS'|'FAILED'|'REFUNDED'} status
+ * @property {string} receipt_number
+ * @property {boolean} [receipt_emailed]
+ * @property {Object} [gateway_response]
+ * @property {string} settled_at
+ */
+
+/**
+ * @typedef {Object} PaymentReceipt
+ * @property {string} receiptNumber
+ * @property {string} orderNumber
+ * @property {string} transactionReference
+ * @property {string} settledAt
+ * @property {string} paymentMethod
+ * @property {'PAID'|'PENDING'|'FAILED'} paymentStatus
+ * @property {Array} items
+ * @property {number} subtotal
+ * @property {number} vat
+ * @property {number} discount
+ * @property {number} deliveryFee
+ * @property {number} total
+ * @property {FulfillmentDetails} fulfillment
+ */
+
 export {};

@@ -87,7 +87,7 @@ export function validateOrder(order) {
   return errors;
 }
 
-export function calculateOrderTotals(drinks = [], discountTier = null, vatRate = DEFAULT_VAT_RATE) {
+export function calculateOrderTotals(drinks = [], discountTier = null, vatRate = DEFAULT_VAT_RATE, deliveryFee = 0) {
   let subtotal = 0;
 
   for (const drink of drinks) {
@@ -111,14 +111,19 @@ export function calculateOrderTotals(drinks = [], discountTier = null, vatRate =
     }
   }
 
-  // Total Cost = Subtotal + VAT - Discount
-  const total = Math.max(0, Math.round((subtotal + vat - discountAmount) * 100) / 100);
+  // Delivery fee (if applicable)
+  const parsedFee = Number(deliveryFee || 0);
+  const safeDeliveryFee = isNaN(parsedFee) || parsedFee < 0 ? 0 : Math.round(parsedFee * 100) / 100;
+
+  // Total Cost = Subtotal + VAT + Delivery Fee - Discount
+  const total = Math.max(0, Math.round((subtotal + vat + safeDeliveryFee - discountAmount) * 100) / 100);
 
   return {
     subtotal,
     vat,
     vatRate,
     discountAmount,
+    deliveryFee: safeDeliveryFee,
     total,
   };
 }
@@ -126,4 +131,46 @@ export function calculateOrderTotals(drinks = [], discountTier = null, vatRate =
 export function formatCurrency(amount) {
   const val = Number(amount || 0);
   return `R${val.toFixed(2)}`;
+}
+
+/**
+ * Generates an immutable, traceable receipt number (AC-FR-004.1)
+ * Format: RCP-YYYYMMDD-XXXX
+ */
+export function generateReceiptNumber(orderNumber) {
+  const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const cleanSuffix = orderNumber ? orderNumber.replace(/^MSD-/, '').slice(0, 6) : Math.floor(1000 + Math.random() * 9000);
+  return `RCP-${datePart}-${cleanSuffix}`;
+}
+
+/**
+ * Generates an HMAC-SHA256 signature for webhook payload verification (AC-FR-004.1 / AC-FR-004.3)
+ */
+export async function generateHmacSignature(payload, secret) {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret);
+  const rawBody = typeof payload === 'string' ? payload : JSON.stringify(payload);
+  const messageData = encoder.encode(rawBody);
+
+  const cryptoKey = await globalThis.crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const signatureBuffer = await globalThis.crypto.subtle.sign('HMAC', cryptoKey, messageData);
+  return Array.from(new Uint8Array(signatureBuffer))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+/**
+ * Verifies an HMAC-SHA256 webhook signature
+ */
+export async function verifyHmacSignature(payload, signature, secret) {
+  if (!signature || !secret) return false;
+  const expected = await generateHmacSignature(payload, secret);
+  return expected.toLowerCase() === String(signature).toLowerCase();
 }

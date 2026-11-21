@@ -1,6 +1,7 @@
 export const MIN_DRINKS_PER_ORDER = 1;
 export const MAX_DRINKS_PER_ORDER = 10;
 export const DEFAULT_VAT_RATE = 0.15;
+export const DEFAULT_DELIVERY_FEE = 15.00;
 
 export const USER_ROLES = {
   PATRON: 'PATRON',
@@ -21,3 +22,17 @@ export const ORDER_STATUS = {
   COLLECTED: 'COLLECTED',
   CANCELLED: 'CANCELLED',
 };
+
+export const PAYMENT_STATUS = {
+  PENDING: 'PENDING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  REFUNDED: 'REFUNDED',
+};
+
+export const PAYMENT_GATEWAYS = {
+  STRIPE: 'STRIPE',
+  INTEGRATED_PAYMENT: 'INTEGRATED_PAYMENT',
+};
+
+export const DEFAULT_WEBHOOK_SECRET = 'whsec_milky_shakes_test_secret_key_2026';
