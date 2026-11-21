@@ -19,14 +19,64 @@ export function validateDrinkItem(drink, index = 0) {
   return errors;
 }
 
+export function validateFulfillment(fulfillment) {
+  const errors = [];
+  if (!fulfillment) {
+    return ['Fulfillment configuration is required'];
+  }
+  const mode = fulfillment.mode || fulfillment.fulfillmentMode;
+  if (!mode || !Object.values(FULFILLMENT_MODES).includes(mode)) {
+    errors.push('Valid fulfillment mode (PICKUP or DELIVERY) is required');
+    return errors;
+  }
+
+  if (mode === FULFILLMENT_MODES.PICKUP) {
+    const restaurant = fulfillment.restaurantId || fulfillment.pickupRestaurantId;
+    const time = fulfillment.pickupTime || fulfillment.pickupTimeSlot;
+    if (!restaurant) {
+      errors.push('Store location is required for pickup');
+    }
+    if (!time) {
+      errors.push('Estimated pickup time slot is required');
+    }
+  } else if (mode === FULFILLMENT_MODES.DELIVERY) {
+    const street = fulfillment.streetAddress || fulfillment.deliveryAddress?.street || fulfillment.address;
+    const postalCode = fulfillment.postalCode || fulfillment.deliveryAddress?.postalCode;
+    const phone = fulfillment.recipientPhone || fulfillment.deliveryAddress?.phone || fulfillment.phone;
+
+    if (!street || !String(street).trim()) {
+      errors.push('Street address is required for delivery');
+    }
+    if (!postalCode || !String(postalCode).trim()) {
+      errors.push('Postal code is required for delivery');
+    }
+    if (!phone || !String(phone).trim()) {
+      errors.push('Recipient contact phone number is required for delivery');
+    }
+  }
+  return errors;
+}
+
 export function validateOrder(order) {
   const errors = [];
   if (!order) {
     return ['Order payload is required'];
   }
-  if (order.fulfillmentMode && !Object.values(FULFILLMENT_MODES).includes(order.fulfillmentMode)) {
-    errors.push('Valid fulfillment mode (PICKUP or DELIVERY) is required');
+
+  // Validate fulfillment if provided
+  if (order.fulfillment) {
+    errors.push(...validateFulfillment(order.fulfillment));
+  } else if (order.fulfillmentMode) {
+    errors.push(...validateFulfillment({
+      mode: order.fulfillmentMode,
+      restaurantId: order.restaurantId,
+      pickupTime: order.pickupTime,
+      streetAddress: order.deliveryAddress,
+      postalCode: order.deliveryPostalCode,
+      recipientPhone: order.recipientPhone,
+    }));
   }
+
   if (!Array.isArray(order.drinks) || order.drinks.length < MIN_DRINKS_PER_ORDER || order.drinks.length > MAX_DRINKS_PER_ORDER) {
     errors.push(`Order must contain between ${MIN_DRINKS_PER_ORDER} and ${MAX_DRINKS_PER_ORDER} drinks`);
   } else {

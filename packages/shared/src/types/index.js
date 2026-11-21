@@ -8,12 +8,30 @@
  */
 
 /**
+ * @typedef {Object} FulfillmentDetails
+ * @property {'PICKUP'|'DELIVERY'} mode
+ * @property {string} [restaurantId]
+ * @property {string} [restaurantName]
+ * @property {string} [pickupTime]
+ * @property {string} [streetAddress]
+ * @property {string} [postalCode]
+ * @property {string} [recipientPhone]
+ * @property {string} [deliveryInstructions]
+ */
+
+/**
  * @typedef {Object} Order
  * @property {string} [id]
  * @property {string} order_number
  * @property {string} [patron_id]
  * @property {string} [restaurant_id]
  * @property {string} [pickup_time]
+ * @property {'PICKUP'|'DELIVERY'} [fulfillment_mode]
+ * @property {string} [delivery_address]
+ * @property {string} [delivery_postal_code]
+ * @property {string} [recipient_phone]
+ * @property {string} [delivery_instructions]
+ * @property {FulfillmentDetails} [fulfillment]
  * @property {number} number_of_drinks
  * @property {number} subtotal_amount
  * @property {number} discount_amount
