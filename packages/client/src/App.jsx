@@ -74,7 +74,15 @@ export default function App() {
     return (
       <OrderPlacement
         currentUser={currentUser}
-        onNavigateToManagement={() => setActiveView("management")}
+        onBackToLanding={(sectionId) => {
+          setActiveView("landing");
+          if (sectionId && sectionId !== "Packs") {
+            setTimeout(() => {
+              const el = document.getElementById(sectionId.toLowerCase());
+              el?.scrollIntoView({ behavior: "smooth" });
+            }, 100);
+          }
+        }}
         onSignOut={handleSignOut}
       />
     );

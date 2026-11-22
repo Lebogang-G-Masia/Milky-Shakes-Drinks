@@ -198,7 +198,7 @@ function getFlavourVisual(name = '') {
   };
 }
 
-export default function OrderPlacement({ currentUser, onSignOut, onNavigateToManagement }) {
+export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding }) {
   // Database catalog state
   const [flavours, setFlavours] = useState([]);
   const [consistencies, setConsistencies] = useState([]);
@@ -799,15 +799,59 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
   if (placedOrder) {
     return (
       <div className="box-builder-canvas">
-        <header className="box-nav-bar">
-          <div className="box-nav-brand-group">
-            <span className="box-nav-brand-wordmark">milky</span>
-            <span className="box-nav-subtitle">Order Confirmed</span>
+        {/* Top Caramel Wave */}
+        <div className="hero-wave-container" aria-hidden="true" style={{ height: '180px' }}>
+          <svg viewBox="0 0 1440 180" preserveAspectRatio="none" className="hero-wave-svg">
+            <path
+              style={{ fill: '#CC7452' }}
+              d="M0,0 L1440,0 L1440,135 C1240,175 1020,110 720,155 C420,195 200,120 0,155 Z"
+            />
+          </svg>
+        </div>
+
+        <header className="landing-header">
+          <div
+            className="landing-brand-logo"
+            onClick={onBackToLanding}
+            role="button"
+            tabIndex={0}
+            title="Milky — Artisan Milkshakes"
+          >
+            milky
           </div>
-          <div className="box-nav-user-group">
-            <span className="box-user-badge">{currentUser?.first_name || 'Patron'}</span>
+
+          <nav className="nav-pill-menu" aria-label="Main Navigation">
+            {['Packs', 'Flavours', 'Philosophy', 'FAQ'].map((tab) => {
+              const isActive = tab === 'Packs';
+              return (
+                <button
+                  key={tab}
+                  className={`nav-pill-item ${isActive ? 'active' : ''}`}
+                  onClick={() => {
+                    if (tab === 'Packs') {
+                      handleResetBox();
+                      setPlacedOrder(null);
+                      setCurrentStage('builder');
+                    } else if (onBackToLanding) {
+                      onBackToLanding(tab);
+                    }
+                  }}
+                  type="button"
+                >
+                  {tab}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="nav-right-actions">
             {onSignOut && (
-              <button type="button" className="btn-nav-signout" onClick={onSignOut}>
+              <button
+                type="button"
+                className="btn-ghost-pill signout-btn"
+                onClick={onSignOut}
+                title="Sign Out"
+              >
                 Sign Out
               </button>
             )}
@@ -907,62 +951,89 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
 
   return (
     <div className="box-builder-canvas">
-      {/* Top Caramel Melting Wave */}
-      <div className="box-top-wave-wrap" aria-hidden="true">
-        <svg viewBox="0 0 1440 100" preserveAspectRatio="none" className="box-top-wave-svg">
-          <path d="M0,0 L1440,0 L1440,65 C1150,105 880,45 600,85 C320,125 150,55 0,75 Z" fill="#BA724C" />
+      {/* Top Ambient Wave Layer (Seamless with Landing Page) */}
+      <div className="hero-wave-container" aria-hidden="true" style={{ height: '180px' }}>
+        <svg
+          viewBox="0 0 1440 180"
+          preserveAspectRatio="none"
+          className="hero-wave-svg"
+        >
+          <path
+            style={{ fill: '#CC7452' }}
+            d="M0,0 L1440,0 L1440,135 C1240,175 1020,110 720,155 C420,195 200,120 0,155 Z"
+          />
         </svg>
       </div>
 
-      {/* Top Floating Navbar */}
-      <header className="box-nav-bar">
-        <div className="box-nav-brand-group">
-          <span className="box-nav-brand-wordmark">milky</span>
-          <span className="box-nav-subtitle">Artisan Box Builder</span>
+      {/* Top Header / Navigation Bar (Coherent with Landing Page) */}
+      <header className="landing-header">
+        {/* Brand Logo */}
+        <div
+          className="landing-brand-logo"
+          onClick={onBackToLanding}
+          role="button"
+          tabIndex={0}
+          title="Milky — Artisan Milkshakes"
+        >
+          milky
         </div>
 
-        {/* Pack Size Pills */}
-        <div className="box-pack-size-selector" role="group" aria-label="Pack Size Selector">
-          <button
-            type="button"
-            className={`btn-pack-size ${packSize === 2 ? 'is-active' : ''}`}
-            onClick={() => handlePackSizeChange(2)}
-          >
-            2-Pack
-          </button>
-          <button
-            type="button"
-            className={`btn-pack-size ${packSize === 4 ? 'is-active' : ''}`}
-            onClick={() => handlePackSizeChange(4)}
-          >
-            4-Pack (10% Off)
-          </button>
-          <button
-            type="button"
-            className={`btn-pack-size ${packSize === 6 ? 'is-active' : ''}`}
-            onClick={() => handlePackSizeChange(6)}
-          >
-            6-Pack (15% Off)
-          </button>
-        </div>
+        {/* Centered Floating Pill Navigation */}
+        <nav className="nav-pill-menu" aria-label="Main Navigation">
+          {['Packs', 'Flavours', 'Philosophy', 'FAQ'].map((tab) => {
+            const isActive = tab === 'Packs';
+            return (
+              <button
+                key={tab}
+                className={`nav-pill-item ${isActive ? 'active' : ''}`}
+                onClick={() => {
+                  if (tab === 'Packs') {
+                    setCurrentStage('builder');
+                  } else if (onBackToLanding) {
+                    onBackToLanding(tab);
+                  }
+                }}
+                type="button"
+              >
+                {tab}
+              </button>
+            );
+          })}
+        </nav>
 
-        {/* User & Navigation */}
-        <div className="box-nav-user-group">
-          <span className="box-user-badge">
-            {currentUser?.first_name ? `${currentUser.first_name} (${currentUser.role || 'Patron'})` : (currentUser?.email || 'Patron')}
-          </span>
-          {onNavigateToManagement && (
+        {/* Right Action Icons / Buttons */}
+        <div className="nav-right-actions">
+          <button
+            type="button"
+            className="btn-ghost-pill cart-btn"
+            onClick={() => setCurrentStage(currentStage === 'builder' ? 'review' : 'builder')}
+            aria-label="View shopping cart"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <path d="M16 10a4 4 0 0 1-8 0" />
+            </svg>
+            <span>Cart ({filledDrinksCount})</span>
+          </button>
+
+          {onSignOut && (
             <button
               type="button"
-              className="btn-nav-admin"
-              onClick={onNavigateToManagement}
-              title="Access Management Oversight & Filtered Reporting"
+              className="btn-ghost-pill signout-btn"
+              onClick={onSignOut}
+              title="Sign Out"
             >
-              Management
-            </button>
-          )}
-          {onSignOut && (
-            <button type="button" className="btn-nav-signout" onClick={onSignOut}>
               Sign Out
             </button>
           )}
@@ -973,14 +1044,44 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
       <main className="box-main-content">
         {/* Header & Gamified Discount Meter */}
         <div className="box-header-row">
-          <h1 className="box-page-title">
-            {currentStage === 'builder' ? `Build Your ${packSize}-Pack Box` : 'Review Box & Fulfillment'}
-          </h1>
-          <p className="box-page-subtitle">
-            {currentStage === 'builder'
-              ? 'Select any slot in your carry box below to customize that milkshake, or use Barista’s Choice to randomize.'
-              : 'All slots configured. Choose store collection or thermal courier delivery.'}
-          </p>
+          <div className="box-title-pack-header">
+            <div>
+              <h1 className="box-page-title">
+                {currentStage === 'builder' ? `Build Your ${packSize}-Pack Box` : 'Review Box & Fulfillment'}
+              </h1>
+              <p className="box-page-subtitle">
+                {currentStage === 'builder'
+                  ? 'Select any slot in your carry box below to customize that milkshake, or use Barista’s Choice to randomize.'
+                  : 'All slots configured. Choose store collection or thermal courier delivery.'}
+              </p>
+            </div>
+
+            {currentStage === 'builder' && (
+              <div className="box-pack-size-selector" role="group" aria-label="Pack Size Selector">
+                <button
+                  type="button"
+                  className={`btn-pack-size ${packSize === 2 ? 'is-active' : ''}`}
+                  onClick={() => handlePackSizeChange(2)}
+                >
+                  2-Pack
+                </button>
+                <button
+                  type="button"
+                  className={`btn-pack-size ${packSize === 4 ? 'is-active' : ''}`}
+                  onClick={() => handlePackSizeChange(4)}
+                >
+                  4-Pack (10% Off)
+                </button>
+                <button
+                  type="button"
+                  className={`btn-pack-size ${packSize === 6 ? 'is-active' : ''}`}
+                  onClick={() => handlePackSizeChange(6)}
+                >
+                  6-Pack (15% Off)
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Gamified Volume Discount Track */}
           <div className="box-discount-meter" aria-label="Pack Discount Progress">
@@ -1251,7 +1352,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
 
               {/* Step 3: Toppings (The Interactive Droppers) */}
               <div className="deck-step-section">
-                <span className="deck-step-label">3. Crown with Topping (Interactive Dropper)</span>
+                <span className="deck-step-label">3. Crown with Topping </span>
                 <div className="deck-toppings-wrap">
                   {toppings.map((item) => {
                     const isSelected = String(activeDrink.toppingId) === String(item.id);
