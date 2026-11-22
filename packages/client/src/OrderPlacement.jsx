@@ -61,7 +61,7 @@ function getItemPrice(item) {
   return isNaN(num) ? 0 : num;
 }
 
-export default function OrderPlacement({ currentUser, onSignOut }) {
+export default function OrderPlacement({ currentUser, onSignOut, onNavigateToManagement }) {
   // Database catalog state
   const [flavours, setFlavours] = useState([]);
   const [consistencies, setConsistencies] = useState([]);
@@ -947,6 +947,16 @@ export default function OrderPlacement({ currentUser, onSignOut }) {
         </div>
         <div className="nav-user">
           <span className="user-badge">{currentUser?.first_name ? `${currentUser.first_name} (${currentUser.role || 'Patron'})` : (currentUser?.email || 'Patron')}</span>
+          {onNavigateToManagement && (
+            <button
+              type="button"
+              className="btn-management-nav"
+              onClick={onNavigateToManagement}
+              title="Access Management Oversight & Filtered Reporting (FR-005)"
+            >
+              📊 Management Reporting
+            </button>
+          )}
           {onSignOut && (
             <button type="button" className="btn-signout" onClick={onSignOut}>
               Sign out
