@@ -193,7 +193,7 @@ export default function LandingPage({
   useEffect(() => {
     const timer = setInterval(() => {
       goToNext();
-    }, 3000);
+    }, 2400);
     return () => clearInterval(timer);
   }, [goToNext]);
 
