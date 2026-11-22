@@ -34,7 +34,7 @@ export const receiptsStore = new Map();
 export const auditLogsStore = [];
 
 /**
- * Records an immutable audit log entry (AC-FR-005.1).
+ * Records an audit log entry.
  */
 export function recordAuditLog({
   action,
@@ -293,7 +293,7 @@ app.post('/api/signup', (req, res) => {
   });
 });
 
-// Calculate order totals endpoint (FR-002: Authoritative server calculation)
+// Calculate order totals
 app.post('/api/orders/calculate', (req, res) => {
   const { drinks, discountTier, vatRate, deliveryFee } = req.body;
   if (!Array.isArray(drinks)) {
@@ -363,7 +363,7 @@ app.post('/api/orders', (req, res) => {
   });
 });
 
-// FR-004: Create payment checkout session
+// Create payment checkout session
 app.post('/api/payments/checkout-session', (req, res) => {
   const { orderId, orderNumber, amount, currency = 'ZAR', patronEmail } = req.body;
 
@@ -389,7 +389,7 @@ app.post('/api/payments/checkout-session', (req, res) => {
   });
 });
 
-// FR-004: Payment Gateway Webhook Endpoint (AC-FR-004.1, AC-FR-004.2, AC-FR-004.3)
+// Payment Gateway Webhook Endpoint
 app.post('/api/webhooks/payment', async (req, res) => {
   const signature = req.headers['x-gateway-signature'];
   const rawBody = req.rawBody ? req.rawBody.toString('utf-8') : JSON.stringify(req.body);
@@ -418,7 +418,7 @@ app.post('/api/webhooks/payment', async (req, res) => {
     return res.status(400).json({ error: 'transactionReference and orderId are required' });
   }
 
-  // 2. Idempotency Check (AC-FR-004.3): Duplicate gateway callbacks cannot duplicate payments or corrupt status
+  // Idempotency check: duplicate gateway callbacks cannot duplicate payments
   if (paymentsStore.has(transactionReference)) {
     const existingPayment = paymentsStore.get(transactionReference);
     const existingReceipt = receiptsStore.get(orderId);
@@ -434,7 +434,7 @@ app.post('/api/webhooks/payment', async (req, res) => {
 
   // 3. Handle Payment Outcome
   if (event === 'payment.succeeded' || event === 'payment_intent.succeeded') {
-    // Generate immutable receipt number (AC-FR-004.1)
+    // Generate receipt number
     const receiptNumber = generateReceiptNumber(orderNumber);
 
     const paymentRecord = {
@@ -458,7 +458,7 @@ app.post('/api/webhooks/payment', async (req, res) => {
       existingOrder.status = ORDER_STATUS.PAID;
     }
 
-    // Build verified receipt (AC-FR-004.1)
+    // Build receipt record
     const receipt = {
       receiptNumber,
       orderId,
@@ -523,7 +523,7 @@ app.post('/api/webhooks/payment', async (req, res) => {
   }
 
   if (event === 'payment.failed' || event === 'payment_intent.payment_failed') {
-    // Record failed payment attempt without marking order as PAID (AC-FR-004.2)
+    // Record failed payment attempt without marking order as PAID
     const failedRecord = {
       id: `pay-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       order_id: orderId,
@@ -565,7 +565,7 @@ app.post('/api/webhooks/payment', async (req, res) => {
   res.status(400).json({ error: `Unhandled webhook event type: ${event}` });
 });
 
-// FR-004: Interactive payment simulation helper (for prototype checkout testing)
+// Interactive payment simulation helper
 app.post('/api/payments/simulate', async (req, res) => {
   const {
     orderId,
@@ -628,7 +628,7 @@ app.post('/api/payments/simulate', async (req, res) => {
   res.status(500).json({ error: 'Webhook route not configured' });
 });
 
-// FR-004: Get verified receipt for order
+// Get receipt for order
 app.get('/api/orders/:orderId/receipt', (req, res) => {
   const { orderId } = req.params;
   const receipt = receiptsStore.get(orderId);
@@ -638,7 +638,7 @@ app.get('/api/orders/:orderId/receipt', (req, res) => {
   res.json({ success: true, receipt });
 });
 
-// FR-004: Send or resend order confirmation & tax invoice email to customer
+// Send or resend order confirmation & tax invoice email to customer
 app.post('/api/orders/email-receipt', async (req, res) => {
   const { order, receipt, customerEmail, customerName } = req.body;
   if (!order && !receipt) {
@@ -679,9 +679,7 @@ app.post('/api/orders/email-receipt', async (req, res) => {
   }
 });
 
-// ==========================================
-// FR-005: Management Oversight & Filtered Reporting (AC-FR-005.1, AC-FR-005.2, AC-FR-005.3)
-// ==========================================
+// Management Reports & Analytics
 
 // Helper: retrieve all stored orders
 export function getAllOrders() {
@@ -689,7 +687,7 @@ export function getAllOrders() {
   return Array.from(ordersStore.values());
 }
 
-// 1. Executive Summary Metrics (AC-FR-005.1, AC-FR-005.3)
+// Executive summary metrics
 app.get('/api/admin/reports/summary', requireAdminRole, (req, res) => {
   const orders = getAllOrders();
   const metrics = calculateAggregatedMetrics(orders);
@@ -700,7 +698,7 @@ app.get('/api/admin/reports/summary', requireAdminRole, (req, res) => {
   });
 });
 
-// 2. Filtered Historical Orders with Clever Filters & SLA Performance Tracking (AC-FR-005.1, AC-FR-005.2, AC-FR-005.3)
+// Filtered historical orders with latency tracking
 app.get('/api/admin/reports/orders', requireAdminRole, (req, res) => {
   const startTime = performance.now();
   const validationErrors = validateReportingFilters(req.query);
@@ -722,11 +720,11 @@ app.get('/api/admin/reports/orders', requireAdminRole, (req, res) => {
   const startIndex = (page - 1) * limit;
   const paginated = filtered.slice(startIndex, startIndex + limit);
 
-  // Sanitize order data to avoid exposing raw db keys, password hashes or internal secrets (AC-FR-005.1)
+  // Sanitize order data before responding
   const sanitizedOrders = paginated.map(sanitizeOrderForAdmin);
 
   const durationMs = Math.round((performance.now() - startTime) * 100) / 100;
-  const slaMet = durationMs < 500; // AC-FR-005.2: SLA < 500ms
+  const slaMet = durationMs < 500;
 
   res.setHeader('X-Response-Time-Ms', durationMs);
   res.json({
@@ -741,7 +739,7 @@ app.get('/api/admin/reports/orders', requireAdminRole, (req, res) => {
   });
 });
 
-// 3. Chronological Audit Log Trail (AC-FR-005.1, AC-FR-005.3)
+// Chronological audit log trail
 app.get('/api/admin/reports/audit-logs', requireAdminRole, (req, res) => {
   const limit = Math.max(1, Math.min(200, parseInt(req.query.limit || '100', 10)));
   const logs = auditLogsStore.slice(0, limit);
@@ -752,7 +750,7 @@ app.get('/api/admin/reports/audit-logs', requireAdminRole, (req, res) => {
   });
 });
 
-// 4. Export Filtered Report to CSV (AC-FR-005.1, AC-FR-005.2, AC-FR-005.3)
+// Export filtered report to CSV
 app.get('/api/admin/reports/export', requireAdminRole, (req, res) => {
   const allOrders = getAllOrders();
   const filtered = filterOrders(allOrders, req.query);
@@ -772,9 +770,7 @@ app.get('/api/admin/reports/export', requireAdminRole, (req, res) => {
   res.send(csv);
 });
 
-// ==========================================
-// FR-005+: Operational Order Management & Inventory Control
-// ==========================================
+// Operational Order Management & Inventory Control
 
 export const inventoryStore = new Map([
   ['flav-1', { id: 'flav-1', name: 'Cookies & Cream', category: 'Signature Artisan', price: 48.0, stockStatus: 'IN_STOCK', remainingPortions: 45, featured: true }],
@@ -805,7 +801,7 @@ export let storeStatus = {
   updatedAt: new Date().toISOString(),
 };
 
-// 5. Update Order Status in Real-Time (AC-FR-005.1 / Kitchen Operations)
+// Update order status in real time
 app.patch('/api/admin/orders/:orderId/status', requireAdminRole, (req, res) => {
   const { orderId } = req.params;
   const { status, note } = req.body;
@@ -930,9 +926,7 @@ app.patch('/api/admin/store-status', requireAdminRole, (req, res) => {
   });
 });
 
-// ==========================================
-// MANDATORY #3 & #10: LOOKUP TABLE MANAGER & AUDIT TRAIL (URS 3.4.3 & 3.4.6)
-// ==========================================
+// Lookup Tables & Audit Trail
 
 export const lookupsStore = {
   flavours: [
@@ -1149,9 +1143,7 @@ app.patch('/api/admin/configurations/:key', requireAdminRole, (req, res) => {
   res.json({ success: true, config, message: `Configuration ${config.label} updated to ${config.value}` });
 });
 
-// ==========================================
-// MANDATORY #9: PATRON ORDER HISTORY & RE-PRINT PORTAL (URS 3.4.7)
-// ==========================================
+// Customer Order History
 
 app.get('/api/patron/orders', (req, res) => {
   const email = (req.headers['x-user-email'] || req.query.email || '').toLowerCase().trim();

@@ -49,7 +49,6 @@ export default function Login({ onSwitch, onSuccess }) {
         throw new Error("Invalid email or password.");
       }
 
-      console.log("Logged in successfully from users table:", user);
       if (onSuccess) {
         onSuccess(user);
       }

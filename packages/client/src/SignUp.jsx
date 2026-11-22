@@ -12,22 +12,15 @@ export async function hashPassword(plainText) {
 }
 
 export default function SignUp({ onSwitch, onSuccess, onStepChange }) {
-  // Stepper state: 1 (Your Details) | 2 (Security)
   const [step, setStep] = useState(1);
-
-  // Step 1 fields
   const [firstName, setFirstName] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
-
-  // Step 2 fields
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Update parent step tracker if provided
   function changeStep(newStep) {
     setStep(newStep);
     setError("");
@@ -36,7 +29,6 @@ export default function SignUp({ onSwitch, onSuccess, onStepChange }) {
     }
   }
 
-  // Handle Step 1 Validation & Proceed
   function handleProceedToStep2(e) {
     e.preventDefault();
     setError("");
@@ -54,7 +46,6 @@ export default function SignUp({ onSwitch, onSuccess, onStepChange }) {
     changeStep(2);
   }
 
-  // Handle Step 2 Final Submission to Supabase
   async function handleFinalSubmit(e) {
     e.preventDefault();
     setError("");
@@ -79,7 +70,6 @@ export default function SignUp({ onSwitch, onSuccess, onStepChange }) {
     try {
       const normalizedEmail = email.trim().toLowerCase();
 
-      // 1. Check if user already exists in users table
       const { data: existing, error: checkError } = await supabase
         .from("users")
         .select("id")
@@ -91,10 +81,8 @@ export default function SignUp({ onSwitch, onSuccess, onStepChange }) {
         throw new Error("An account with this email already exists. Please sign in instead.");
       }
 
-      // 2. Hash password with SHA-256
       const hashedPassword = await hashPassword(password);
 
-      // 3. Insert new user into users table
       const { data, error: insertError } = await supabase
         .from("users")
         .insert([
@@ -112,15 +100,9 @@ export default function SignUp({ onSwitch, onSuccess, onStepChange }) {
         .single();
 
       if (insertError) {
-        if (insertError.code === "42501") {
-          throw new Error(
-            "Row-Level Security: Please run the INSERT policy in Supabase SQL editor to allow sign-ups."
-          );
-        }
-        throw insertError;
+        throw new Error("Unable to create account right now. Please try again later.");
       }
 
-      console.log("Account created successfully in users table:", data);
       if (onSuccess) {
         onSuccess(data);
       }

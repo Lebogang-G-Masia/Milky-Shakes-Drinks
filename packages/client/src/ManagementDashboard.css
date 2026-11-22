@@ -1,7 +1,4 @@
-/* ==========================================================================
-   Milky Shakes Drinks - Manager Operations Suite (ManagementDashboard.css)
-   Clean, Calm, Professional Restaurant Management UI
-   ========================================================================== */
+/* Manager Operations Suite Styles */
 
 :root {
   --portal-bg: #FAF7F2;
@@ -32,9 +29,7 @@
   box-sizing: border-box;
 }
 
-/* ==========================================================================
-   Toast Notification Banner
-   ========================================================================== */
+/* Toast Notification */
 .portal-toast-banner {
   position: fixed;
   top: 18px;
@@ -68,9 +63,7 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* ==========================================================================
-   Masthead & Brand Bar
-   ========================================================================== */
+/* Masthead */
 .portal-masthead {
   background: var(--portal-espresso);
   color: #FFFFFF;
@@ -207,16 +200,6 @@
   background: rgba(255, 255, 255, 0.18);
 }
 
-.btn-test-role {
-  background: rgba(239, 68, 68, 0.15);
-  color: #FECACA;
-  border-color: rgba(239, 68, 68, 0.25);
-}
-
-.btn-test-role:hover {
-  background: rgba(239, 68, 68, 0.25);
-}
-
 .btn-signout {
   background: transparent;
   color: rgba(255, 255, 255, 0.6);
@@ -227,9 +210,7 @@
   color: #FFFFFF;
 }
 
-/* ==========================================================================
-   Tab Navigation
-   ========================================================================== */
+/* Tab Navigation */
 .portal-tab-nav {
   background: #FFFFFF;
   border-bottom: 1px solid var(--portal-border);
@@ -281,9 +262,7 @@
   border-radius: 9999px;
 }
 
-/* ==========================================================================
-   Content Canvas
-   ========================================================================== */
+/* Content Body */
 .portal-content-body {
   max-width: 1320px;
   margin: 24px auto 0;
@@ -319,9 +298,7 @@
   gap: 8px;
 }
 
-/* ==========================================================================
-   KPI Metrics Grid
-   ========================================================================== */
+/* KPI Metrics Grid */
 .portal-kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -531,9 +508,7 @@
   color: var(--portal-espresso);
 }
 
-/* ==========================================================================
-   Kitchen Kanban Board
-   ========================================================================== */
+/* Kitchen Kanban Board */
 .view-toggle-pills {
   display: flex;
   background: var(--portal-cream-subtle);
@@ -794,9 +769,7 @@
   padding: 0;
 }
 
-/* ==========================================================================
-   Reports & Clever Filters (FR-005)
-   ========================================================================== */
+/* Reports & Filters */
 .portal-filters-card {
   background: var(--portal-card-bg);
   border: 1px solid var(--portal-border);
@@ -1134,9 +1107,7 @@
   font-size: 13px;
 }
 
-/* ==========================================================================
-   Inventory Tables
-   ========================================================================== */
+/* Inventory Tables */
 .inventory-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -1252,9 +1223,7 @@
   border-color: #C5221F;
 }
 
-/* ==========================================================================
-   Audit Table
-   ========================================================================== */
+/* Audit Table */
 .system-audit-table {
   width: 100%;
   border-collapse: collapse;
@@ -1287,9 +1256,7 @@
   color: var(--portal-espresso);
 }
 
-/* ==========================================================================
-   Modals
-   ========================================================================== */
+/* Modals */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1501,9 +1468,7 @@
   color: var(--portal-text-subtle);
 }
 
-/* ==========================================================================
-   Buttons
-   ========================================================================== */
+/* Buttons */
 .btn-portal-primary {
   background: var(--portal-espresso);
   color: #FFFFFF;
@@ -1545,9 +1510,7 @@
   width: 100%;
 }
 
-/* ==========================================================================
-   RBAC 403 Forbidden Screen
-   ========================================================================== */
+/* RBAC 403 Forbidden Screen */
 .rbac-denied-view {
   display: flex;
   flex-direction: column;
@@ -1630,33 +1593,7 @@
   align-items: center;
 }
 
-.dev-role-switcher-box {
-  background: var(--portal-bg);
-  border: 1px dashed var(--portal-border);
-  padding: 12px 16px;
-  border-radius: var(--portal-radius-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.dev-switcher-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--portal-text-muted);
-}
-
-.dev-switcher-buttons {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-}
-
-/* ==========================================================================
-   Reports Sub-Tab Navigation Bar (URS Section 3.4.4 & Page 12 Mockup)
-   ========================================================================== */
+/* Reports Sub-Tab Navigation */
 .reports-subtab-bar {
   display: flex;
   justify-content: space-between;
@@ -1704,9 +1641,7 @@
   gap: 10px;
 }
 
-/* ==========================================================================
-   Trends & Analytics Charts (URS Section 3.4.4 & 3.4.7)
-   ========================================================================== */
+/* Trends & Analytics Charts */
 .trends-view-container {
   display: flex;
   flex-direction: column;
@@ -1899,9 +1834,7 @@
   font-weight: 600;
 }
 
-/* ==========================================================================
-   Audit Lookup Trail (URS Section 3.4.4 & 3.4.7)
-   ========================================================================== */
+/* Audit Lookup Trail */
 .audit-lookup-view {
   display: flex;
   flex-direction: column;
@@ -1974,9 +1907,7 @@
   font-weight: 600;
 }
 
-/* ==========================================================================
-   Lookup Table Manager Layout (URS Section 3.4.3 & 3.4.6, Page 11 Mockup)
-   ========================================================================== */
+/* Lookup Table Manager Layout */
 .lookups-pane {
   display: flex;
   flex-direction: column;
@@ -2118,9 +2049,7 @@
   border-radius: 4px;
 }
 
-/* ==========================================================================
-   Lookup Modal Card
-   ========================================================================== */
+/* Lookup Modal Card */
 .lookup-modal-card {
   max-width: 480px;
   width: 100%;

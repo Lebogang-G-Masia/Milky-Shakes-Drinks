@@ -19,13 +19,10 @@ function isUuid(val) {
 }
 
 export default function ManagementDashboard({ currentUser, onNavigateToOrder, onSignOut }) {
-  // Navigation Tabs: 'overview' | 'kitchen' | 'reports' | 'inventory' | 'audit'
   const [activeTab, setActiveTab] = useState('overview');
-
-  // Active role state (allows prototype role testing for AC-FR-005.3)
   const [activeRole, setActiveRole] = useState(currentUser?.role || USER_ROLES.MANAGER);
 
-  // Filter States (FR-005)
+  // Filters
   const [datePreset, setDatePreset] = useState(REPORT_DATE_PRESETS.ALL_TIME);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -37,7 +34,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
   const [maxTotal, setMaxTotal] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Data States
+  // Data
   const [orders, setOrders] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [inventory, setInventory] = useState([]);
@@ -53,7 +50,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
     announcement: 'Hand-churned artisan milkshakes made with double-thick farm cream.',
   });
 
-  // UI States
+  // UI
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [queryLatencyMs, setQueryLatencyMs] = useState(0);
@@ -66,7 +63,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
   const [showSystemAudit, setShowSystemAudit] = useState(false);
   const [reportsSubTab, setReportsSubTab] = useState('orders'); // 'orders' | 'trends' | 'audit_lookup'
 
-  // Lookup Table Manager State (URS 3.4.3 & 3.4.6, Mandatory #3)
+  // Lookup Tables
   const [lookupFlavours, setLookupFlavours] = useState([]);
   const [lookupToppings, setLookupToppings] = useState([]);
   const [lookupConsistencies, setLookupConsistencies] = useState([]);
@@ -375,7 +372,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
     };
   }, [fetchData]);
 
-  // Clever Filters & Latency Measurement (AC-FR-005.2)
+  // Filtered orders & latency
   const { filteredOrders, filterDuration } = useMemo(() => {
     const start = performance.now();
     const result = filterOrders(orders, {
@@ -450,7 +447,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
     return { paid, preparing, ready, collected };
   }, [orders]);
 
-  // Trends Analytics & Day-of-the-Week Customer Order Volumes (URS Section 3.4.4 & 3.4.7)
+  // Trends analytics & weekday volumes
   const trendsData = useMemo(() => {
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const days = dayNames.map((name, idx) => ({
@@ -518,7 +515,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
     return { days, weeks, months, peakDay, maxDayCount, maxWeekCount, maxMonthCount };
   }, [filteredOrders]);
 
-  // Filtered audit logs specifically for Lookup Management ("who changed what to what", URS 3.4.4 & 3.4.7)
+  // Lookup audit logs
   const auditLookupLogs = useMemo(() => {
     return auditLogs.filter((log) => {
       const action = (log.action || '').toUpperCase();
@@ -536,7 +533,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
     });
   }, [auditLogs]);
 
-  // Lookup Management Modal & Action Handlers (URS 3.4.3 & 3.4.6)
+  // Lookup modal & action handlers
   const handleOpenAddLookup = (type) => {
     setEditingLookupItem({
       type,
@@ -721,7 +718,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
           });
         } catch (e) {}
 
-        // Log to audit log: "who changed what to what" (URS 3.4.3 & 3.4.6)
+        // Record audit log entry
         await supabase.from('audit_logs').insert([
           {
             action: 'LOOKUP_UPDATED',
@@ -961,7 +958,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
     }
   };
 
-  // Export CSV Handler (FR-005)
+  // Export CSV Handler
   const handleExportCsv = () => {
     const csvContent = generateOrdersCsv(filteredOrders);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -996,7 +993,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
     return Math.max(1, Math.floor(diffMs / 60000));
   };
 
-  // RBAC 403 Forbidden Screen (AC-FR-005.3)
+  // RBAC 403 Forbidden Screen
   if (!isAuthorized) {
     return (
       <div className="manager-portal-root rbac-denied-view">
@@ -1015,34 +1012,15 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
             kitchen operations, and reports.
           </p>
           <div className="rbac-role-info">
-            Current Active Role: <span className="badge-role-tag badge-patron">{activeRole}</span>
+            Current Role: <span className="badge-role-tag badge-patron">{activeRole}</span>
           </div>
 
           <div className="rbac-actions">
             {onNavigateToOrder && (
-              <button type="button" className="btn-portal-secondary" onClick={onNavigateToOrder}>
+              <button type="button" className="btn-portal-primary" onClick={onNavigateToOrder}>
                 Return to Ordering
               </button>
             )}
-            <div className="dev-role-switcher-box">
-              <span className="dev-switcher-title">Role Simulation (Test AC-FR-005.3):</span>
-              <div className="dev-switcher-buttons">
-                <button
-                  type="button"
-                  className="btn-portal-primary"
-                  onClick={() => setActiveRole(USER_ROLES.MANAGER)}
-                >
-                  Switch to Manager Role
-                </button>
-                <button
-                  type="button"
-                  className="btn-portal-secondary"
-                  onClick={() => setActiveRole(USER_ROLES.STAFF)}
-                >
-                  Switch to Staff Role
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -1102,15 +1080,6 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
                 Customer View
               </button>
             )}
-
-            <button
-              type="button"
-              className="btn-portal-action btn-test-role"
-              onClick={() => setActiveRole(USER_ROLES.PATRON)}
-              title="Test AC-FR-005.3: Simulate Non-Admin Customer Access"
-            >
-              Simulate 403
-            </button>
 
             {onSignOut && (
               <button type="button" className="btn-portal-action btn-signout" onClick={onSignOut}>
@@ -1179,9 +1148,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
 
       {/* Main Content Area */}
       <main className="portal-content-body">
-        {/* ================================================================= */}
-        {/* TAB 1: EXECUTIVE OVERVIEW */}
-        {/* ================================================================= */}
+        {/* Overview */}
         {activeTab === 'overview' && (
           <div className="tab-pane overview-pane">
             {/* Key Performance Indicators */}
@@ -1342,9 +1309,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
           </div>
         )}
 
-        {/* ================================================================= */}
-        {/* TAB 2: KITCHEN KANBAN & DISPATCH PIPELINE */}
-        {/* ================================================================= */}
+        {/* Kitchen Pipeline */}
         {activeTab === 'kitchen' && (
           <div className="tab-pane kitchen-pane">
             <div className="section-toolbar">
@@ -1650,12 +1615,10 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
           </div>
         )}
 
-        {/* ================================================================= */}
-        {/* TAB 3: MANAGEMENT REPORTS & TRENDS (URS 3.4.4 & 3.4.7, Mandatory #10) */}
-        {/* ================================================================= */}
+        {/* Reports & Trends */}
         {activeTab === 'reports' && (
           <div className="tab-pane reports-pane">
-            {/* Sub-tab Navigation matching URS Section 3.4.4 & Page 12 Mockup */}
+            {/* Reports Sub-tabs */}
             <div className="reports-subtab-bar">
               <div className="reports-subtab-pills">
                 <button
@@ -1841,13 +1804,13 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
                 </div>
               </div>
 
-              {/* SLA & Results Summary Bar */}
+              {/* Results Summary Bar */}
               <div className="filters-sla-bar">
                 <span className="sla-info-text">
-                  Query executed in <strong>{filterDuration || queryLatencyMs}ms</strong> (SLA target: &lt; 500ms) &bull; Verified
+                  Showing {filteredOrders.length} of {orders.length} transactions
                 </span>
                 <span className="results-count">
-                  Showing <strong>{filteredOrders.length}</strong> of {orders.length} total orders
+                  {filteredOrders.length === 1 ? '1 order found' : `${filteredOrders.length} orders found`}
                 </span>
               </div>
             </section>
@@ -1906,8 +1869,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
                         return (
                           <tr key={order.id || order.orderNumber}>
                             <td className="cell-order-ref">
-                              <strong>{order.orderNumber}</strong>
-                              <span className="order-id-sub">{String(order.id).slice(0, 8)}...</span>
+                              <strong>{order.orderNumber || order.id}</strong>
                             </td>
                             <td className="cell-date">
                               {new Date(order.createdAt).toLocaleDateString()}{' '}
@@ -1974,7 +1936,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
             </>
             )}
 
-            {/* SUB-TAB 2: TRENDS & ANALYTICS (URS 3.4.4 & 3.4.7, Page 12) */}
+            {/* Trends & Analytics */}
             {reportsSubTab === 'trends' && (
               <div className="trends-view-container">
                 {/* Key Trends Summary Metrics */}
@@ -2010,12 +1972,12 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
 
                 {/* Grid: Day of Week & Weekly Trends */}
                 <div className="trends-charts-grid">
-                  {/* Chart 1: Customer Order Volumes per Day of the Week (URS 3.4.7) */}
+                  {/* Customer Order Volumes by Day of Week */}
                   <div className="portal-card-box trend-chart-card">
                     <div className="card-box-header">
                       <div>
                         <h3 className="card-box-title">Customer Order Volumes per Day of the Week</h3>
-                        <p className="card-box-sub">Trend analysis across Monday through Sunday (URS Section 3.4.7)</p>
+                        <p className="card-box-sub">Trend analysis across Monday through Sunday</p>
                       </div>
                       <span className="chart-badge-highlight">Busiest: {trendsData.peakDay.shortName}</span>
                     </div>
@@ -2078,12 +2040,12 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
                     </div>
                   </div>
 
-                  {/* Chart 2: Weekly Orders Bar Chart (Page 12 Mockup) */}
+                  {/* Weekly Orders Bar Chart */}
                   <div className="portal-card-box trend-chart-card">
                     <div className="card-box-header">
                       <div>
                         <h3 className="card-box-title">Weekly Orders Volume</h3>
-                        <p className="card-box-sub">4-week cadence and growth trajectory (Page 12 Mockup)</p>
+                        <p className="card-box-sub">4-week cadence and growth trajectory</p>
                       </div>
                     </div>
 
@@ -2128,12 +2090,12 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
               </div>
             )}
 
-            {/* SUB-TAB 3: AUDIT LOOKUP TAB (URS 3.4.4 & 3.4.7: "who changed what to what") */}
+            {/* Audit Lookup Tab */}
             {reportsSubTab === 'audit_lookup' && (
               <div className="audit-lookup-view">
                 <div className="section-toolbar">
                   <div>
-                    <h3>Audit Lookup Trail (who changed what to what)</h3>
+                    <h3>Audit Lookup Trail</h3>
                     <p className="section-subtext">
                       Immutable security record of all lookup table modifications, price changes, and system configuration updates
                     </p>
@@ -2176,7 +2138,11 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
                             </td>
                             <td>
                               <strong>{log.entity_type}</strong>
-                              {log.entity_id && <span className="entity-id-tag">({log.entity_id})</span>}
+                              {log.entity_id && (
+                                <span className="entity-id-tag">
+                                  ({isUuid(log.entity_id) ? log.entity_id.slice(0, 8) : log.entity_id})
+                                </span>
+                              )}
                             </td>
                             <td>
                               <span className="audit-action-tag">
@@ -2205,14 +2171,12 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
           </div>
         )}
 
-        {/* ================================================================= */}
-        {/* TAB 4: LOOKUP TABLE MANAGER (URS Section 3.4.3 & 3.4.6, Page 11, Mandatory #3) */}
-        {/* ================================================================= */}
+        {/* Lookup Table Manager */}
         {activeTab === 'lookups' && (
           <div className="tab-pane lookups-pane">
             <div className="section-toolbar">
               <div>
-                <h2>Lookup Management (Lookup-manager)</h2>
+                <h2>Lookup Management</h2>
                 <p className="section-subtext">
                   Configure milkshake flavours, toppings, consistency surcharges, VAT, and frequent customer discount rules.
                   Changes apply strictly to new orders and do not mutate historical orders.
@@ -2243,9 +2207,8 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
               </div>
             </div>
 
-            {/* Grid matching Page 11 Layout */}
             <div className="lookups-grid-layout">
-              {/* Table 1: Milkshake Flavours (Page 11) */}
+              {/* Milkshake Flavours */}
               <div className="portal-card-box lookup-card-box">
                 <div className="card-box-header">
                   <div>
@@ -2309,7 +2272,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
                 </div>
               </div>
 
-              {/* Table 2: Milkshake Toppings (Page 11) */}
+              {/* Milkshake Toppings */}
               <div className="portal-card-box lookup-card-box">
                 <div className="card-box-header">
                   <div>
@@ -2373,11 +2336,11 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
                 </div>
               </div>
 
-              {/* Table 3: Milkshake Consistencies ("Thick or not" URS 3.4.1 & 3.4.3) */}
+              {/* Milkshake Consistencies */}
               <div className="portal-card-box lookup-card-box">
                 <div className="card-box-header">
                   <div>
-                    <h3 className="card-box-title">Milkshake Consistencies ("Thick or not")</h3>
+                    <h3 className="card-box-title">Milkshake Consistencies</h3>
                     <p className="card-box-sub">Double thick, Thick, Milky, Icy surcharges</p>
                   </div>
                 </div>
@@ -2419,7 +2382,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
                 </div>
               </div>
 
-              {/* Table 4: System Configurations & Frequent Customer Discount Engine (URS 3.4.5 & 3.4.6) */}
+              {/* System Configurations & Discount Rules */}
               <div className="portal-card-box lookup-card-box">
                 <div className="card-box-header">
                   <div>
@@ -2471,9 +2434,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
           </div>
         )}
 
-        {/* ================================================================= */}
-        {/* TAB 4: INVENTORY & STOCK CONTROL */}
-        {/* ================================================================= */}
+        {/* Inventory & Stock Control */}
         {activeTab === 'inventory' && (
           <div className="tab-pane inventory-pane">
             <div className="section-toolbar">
@@ -2627,9 +2588,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
           </div>
         )}
 
-        {/* ================================================================= */}
-        {/* TAB 5: AUDIT LOGS */}
-        {/* ================================================================= */}
+        {/* System Audit Ledger */}
         {activeTab === 'audit' && (
           <div className="tab-pane audit-pane">
             <div className="section-toolbar">
@@ -2676,7 +2635,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
                           </span>
                         </td>
                         <td>{log.entity_type}</td>
-                        <td><code>{log.entity_id}</code></td>
+                        <td><code>{isUuid(log.entity_id) ? log.entity_id.slice(0, 8) : log.entity_id}</code></td>
                         <td>{log.new_value || log.previous_value || 'State transition verified'}</td>
                       </tr>
                     ))
@@ -2688,9 +2647,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
         )}
       </main>
 
-      {/* ================================================================= */}
-      {/* MODAL 1: STORE OPERATING MODE */}
-      {/* ================================================================= */}
+      {/* Store Operating Mode Modal */}
       {showStoreStatusModal && (
         <div className="modal-backdrop">
           <div className="portal-modal-card">
@@ -2719,7 +2676,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
                   <div className="mode-option-indicator indicator-open" />
                   <div className="mode-option-info">
                     <h4>Open &bull; Normal Preparation</h4>
-                    <p>Orders processed within standard SLA (7 to 10 minutes).</p>
+                    <p>Orders processed within standard preparation time (7 to 10 minutes).</p>
                   </div>
                 </div>
 
@@ -2792,9 +2749,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
         </div>
       )}
 
-      {/* ================================================================= */}
-      {/* MODAL 2: ORDER AUDIT TRAIL */}
-      {/* ================================================================= */}
+      {/* Order Audit Trail Modal */}
       {selectedOrderAudit && (
         <div className="modal-backdrop">
           <div className="portal-modal-card">
@@ -2839,7 +2794,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
                       <strong>Payment Settled</strong>
                       <span className="timeline-time">{new Date(selectedOrderAudit.createdAt).toLocaleString()}</span>
                     </div>
-                    <p>Stripe gateway confirmed authorization for {formatCurrency(selectedOrderAudit.total)}.</p>
+                    <p>Payment gateway confirmed authorization for {formatCurrency(selectedOrderAudit.total)}.</p>
                     <span className="timeline-actor">Actor: System</span>
                   </div>
                 </div>
@@ -2871,9 +2826,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
         </div>
       )}
 
-      {/* ================================================================= */}
-      {/* MODAL 3: SYSTEM AUDIT LOG */}
-      {/* ================================================================= */}
+      {/* System Audit Log Modal */}
       {showSystemAudit && (
         <div className="modal-backdrop">
           <div className="portal-modal-card modal-large">
@@ -2910,7 +2863,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
                         <td>{new Date(log.created_at).toLocaleTimeString()}</td>
                         <td><code>{log.action}</code></td>
                         <td><span className="actor-badge">{log.actor_role}</span></td>
-                        <td>{log.entity_type} ({log.entity_id})</td>
+                        <td>{log.entity_type}{log.entity_id ? ` (${isUuid(log.entity_id) ? log.entity_id.slice(0, 8) : log.entity_id})` : ''}</td>
                         <td>{log.new_value || log.previous_value || 'Verified system action'}</td>
                       </tr>
                     ))}
@@ -2932,9 +2885,7 @@ export default function ManagementDashboard({ currentUser, onNavigateToOrder, on
         </div>
       )}
 
-      {/* ================================================================= */}
-      {/* MODAL 4: ADD / EDIT LOOKUP ITEM (URS 3.4.3 Page 11 Mockup) */}
-      {/* ================================================================= */}
+      {/* Add / Edit Lookup Modal */}
       {editingLookupItem && (
         <div className="modal-backdrop" onClick={() => setEditingLookupItem(null)}>
           <div className="portal-modal-card lookup-modal-card" onClick={(e) => e.stopPropagation()}>

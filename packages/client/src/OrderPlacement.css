@@ -1,12 +1,4 @@
-/* ==========================================================================
-   Milky Shakes Drinks — Artisan Box Builder & 3D Parallax Studio
-   Features:
-   1. Real photographic hero milkshakes (Cookies & Cream, Wild Strawberry, Mint)
-   2. Interactive 3D Cursor Tilt Parallax with specular glare reflection
-   3. Artisan recipe topping selection
-   4. Tactile Kraft Carry Tray with realistic mini bottle cutouts
-   5. ZERO EMOJIS: Clean SVGs and modern craft typography
-   ========================================================================== */
+/* Artisan Box Builder Styles */
 
 :root {
   --box-cream-bg: #FDF6EC;
@@ -162,9 +154,7 @@
   color: var(--box-error);
 }
 
-/* ==========================================================================
-   PROMINENT STEP 1: PACK SIZE SELECTION DECK
-   ========================================================================== */
+/* Pack Size Selection Deck */
 .box-title-pack-header {
   margin-bottom: 14px;
 }
@@ -465,9 +455,7 @@
   align-items: start;
 }
 
-/* ==========================================================================
-   LEFT COLUMN: 3D PARALLAX SPOTLIGHT STAGE
-   ========================================================================== */
+/* Spotlight Stage */
 .spotlight-stage-card {
   background: var(--box-white);
   border-radius: var(--box-radius-card);
@@ -629,9 +617,7 @@
   color: var(--box-caramel);
 }
 
-/* ==========================================================================
-   THE TACTILE CARRY TRAY (INSET IN LEFT COLUMN)
-   ========================================================================== */
+/* Carry Tray */
 .stage-tray-section {
   border-top: 1px solid var(--box-border);
   padding-top: 20px;
@@ -785,9 +771,7 @@
   cursor: not-allowed;
 }
 
-/* ==========================================================================
-   RIGHT COLUMN: RECIPE CUSTOMIZER & INGREDIENT DROPPER CONTROLS
-   ========================================================================== */
+/* Recipe Customizer */
 .box-deck-card {
   background: var(--box-white);
   border-radius: var(--box-radius-card);
@@ -1052,9 +1036,7 @@
   cursor: not-allowed;
 }
 
-/* ==========================================================================
-   REVIEW & FULFILLMENT STAGE
-   ========================================================================== */
+/* Review & Fulfillment */
 .review-stage-card {
   background: var(--box-white);
   border-radius: var(--box-radius-card);
@@ -1356,9 +1338,7 @@
   gap: 8px;
 }
 
-/* ==========================================================================
-   PAYMENT MODAL & CONFIRMED INVOICE
-   ========================================================================== */
+/* Payment Modal & Receipt */
 .payment-modal-backdrop {
   position: fixed;
   top: 0;
@@ -1790,12 +1770,7 @@
   }
 }
 
-/* ==========================================================================
-   Coherent Manager & Patron Portal Styles:
-   1. Real-time Store Operational Banners (Paused, Rush, Announcement)
-   2. Out of Stock / Sold Out States
-   3. Live Kitchen Tracker Dialog & 4-Step Progress
-   ========================================================================== */
+/* Store Operational Banners & Tracker */
 
 /* Real-Time Store Operational Banners */
 .store-operational-banner {

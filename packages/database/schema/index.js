@@ -1,4 +1,4 @@
-// Core Schema Model definitions for Supabase PostgreSQL per schema.md
+// Database schema table definitions and enums
 export const tableNames = {
   P_USER: 'p_user',
   USERS: 'users',

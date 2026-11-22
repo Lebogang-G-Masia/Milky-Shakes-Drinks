@@ -23,7 +23,7 @@ after(async () => {
   await new Promise((resolve) => server.close(resolve));
 });
 
-describe('Lookup Table Manager & Patron History (Mandatory #3, #9, #10)', () => {
+describe('Lookup Table Manager & Patron History', () => {
   describe('Public Lookup Catalog (/api/lookups)', () => {
     it('retrieves flavours, toppings, consistencies, and configurations', async () => {
       const res = await fetch(`${baseUrl}/api/lookups`);
@@ -87,7 +87,7 @@ describe('Lookup Table Manager & Patron History (Mandatory #3, #9, #10)', () => 
     });
   });
 
-  describe('Lookup Item Update & Audit Trail (who changed what to what)', () => {
+  describe('Lookup Item Update & Audit Trail', () => {
     it('updates flavour price and logs exact previous and new value in audit log', async () => {
       const updateRes = await fetch(`${baseUrl}/api/admin/lookups/flavours/flav-strawberry`, {
         method: 'PATCH',

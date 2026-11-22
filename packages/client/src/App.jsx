@@ -115,8 +115,6 @@ function AppContent() {
   }
 
   if (path === "/management" || path === "/manager" || path === "/admin") {
-    // Allows direct access to manager operations suite for review and testing,
-    // with built-in RBAC switcher (AC-FR-005.3) to test Patron 403 vs Manager/Staff roles
     const managerUser = currentUser?.role === USER_ROLES.MANAGER || currentUser?.role === USER_ROLES.STAFF
       ? currentUser
       : {

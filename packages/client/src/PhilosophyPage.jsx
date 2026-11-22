@@ -123,9 +123,6 @@ export default function PhilosophyPage({ currentUser, onSignOut }) {
       {/* Main Philosophy Content */}
       <main className="box-main-content">
         <div style={{ textAlign: 'center', maxWidth: '800px', margin: '20px auto 40px' }}>
-          <div className="deck-header-badge" style={{ display: 'inline-flex', marginBottom: '12px' }}>
-            Our Artisan Credo
-          </div>
           <h1 className="box-page-title" style={{ fontSize: '38px', marginBottom: '12px' }}>
             The Milky Philosophy
           </h1>

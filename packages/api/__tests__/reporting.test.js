@@ -31,8 +31,8 @@ after(async () => {
   await new Promise((resolve) => server.close(resolve));
 });
 
-describe('Management Oversight & Filtered Reporting (FR-005)', () => {
-  describe('RBAC Security Guard (AC-FR-005.3)', () => {
+describe('Management Oversight & Filtered Reporting', () => {
+  describe('RBAC Security Guard', () => {
     it('rejects unauthenticated request with HTTP 401 Unauthorized', async () => {
       const res = await fetch(`${baseUrl}/api/admin/reports/summary`);
       assert.strictEqual(res.status, 401);
@@ -41,7 +41,7 @@ describe('Management Oversight & Filtered Reporting (FR-005)', () => {
       assert.strictEqual(data.code, 'AUTH_REQUIRED');
     });
 
-    it('rejects non-admin PATRON role with HTTP 403 Forbidden (AC-FR-005.3)', async () => {
+    it('rejects non-admin PATRON role with HTTP 403 Forbidden', async () => {
       const res = await fetch(`${baseUrl}/api/admin/reports/summary`, {
         headers: { 'x-user-role': USER_ROLES.PATRON },
       });
@@ -72,7 +72,7 @@ describe('Management Oversight & Filtered Reporting (FR-005)', () => {
     });
   });
 
-  describe('Aggregated Executive Metrics (AC-FR-005.1)', () => {
+  describe('Aggregated Executive Metrics', () => {
     it('calculates gross revenue, order counts, and fulfillment split', async () => {
       const res = await fetch(`${baseUrl}/api/admin/reports/summary`, {
         headers: { 'x-user-role': USER_ROLES.MANAGER },
@@ -96,8 +96,8 @@ describe('Management Oversight & Filtered Reporting (FR-005)', () => {
     });
   });
 
-  describe('Clever Filters & SLA Performance (AC-FR-005.2)', () => {
-    it('executes filtered query in under 500ms (SLA assertion AC-FR-005.2)', async () => {
+  describe('Clever Filters & SLA Performance', () => {
+    it('executes filtered query in under 500ms SLA threshold', async () => {
       const res = await fetch(`${baseUrl}/api/admin/reports/orders?datePreset=LAST_7_DAYS`, {
         headers: { 'x-user-role': USER_ROLES.MANAGER },
       });
@@ -179,7 +179,7 @@ describe('Management Oversight & Filtered Reporting (FR-005)', () => {
     });
   });
 
-  describe('Data Sanitization & Schema Protection (AC-FR-005.1)', () => {
+  describe('Data Sanitization & Schema Protection', () => {
     it('sanitizes responses to ensure no raw passwords or internal secrets are exposed', async () => {
       const res = await fetch(`${baseUrl}/api/admin/reports/orders`, {
         headers: { 'x-user-role': USER_ROLES.MANAGER },
@@ -195,7 +195,7 @@ describe('Management Oversight & Filtered Reporting (FR-005)', () => {
     });
   });
 
-  describe('Chronological Audit Trail (AC-FR-005.1)', () => {
+  describe('Chronological Audit Trail', () => {
     it('retrieves chronological transaction and order state transitions', async () => {
       const res = await fetch(`${baseUrl}/api/admin/reports/audit-logs`, {
         headers: { 'x-user-role': USER_ROLES.MANAGER },
@@ -215,7 +215,7 @@ describe('Management Oversight & Filtered Reporting (FR-005)', () => {
     });
   });
 
-  describe('CSV Report Export (AC-FR-005.1, AC-FR-005.2)', () => {
+  describe('CSV Report Export', () => {
     it('generates downloadable RFC 4180 CSV with accurate header and rows', async () => {
       const res = await fetch(`${baseUrl}/api/admin/reports/export?status=PAID`, {
         headers: { 'x-user-role': USER_ROLES.MANAGER },

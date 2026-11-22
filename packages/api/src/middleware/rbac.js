@@ -1,15 +1,7 @@
 import { USER_ROLES, isAdminRole } from '@milky-shakes/shared';
 
 /**
- * Express middleware enforcing Role-Based Access Control (RBAC) for administrative routes (AC-FR-005.3).
- *
- * Rules:
- * 1. Checks for user role in request headers:
- *    - 'x-user-role' or 'x-role' (sent by client / gateway)
- *    - or req.user.role (from authenticated session/JWT)
- * 2. If unauthenticated / no role: returns HTTP 401 Unauthorized
- * 3. If role is non-admin (e.g. 'PATRON'): returns HTTP 403 Forbidden (AC-FR-005.3)
- * 4. If role is 'MANAGER' or 'STAFF': allows request to proceed
+ * Express middleware enforcing Role-Based Access Control (RBAC) for administrative routes.
  */
 export function requireAdminRole(req, res, next) {
   const role = req.headers['x-user-role'] || req.headers['x-role'] || req.user?.role;

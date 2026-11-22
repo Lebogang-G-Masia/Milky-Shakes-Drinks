@@ -1,9 +1,4 @@
-/* ==========================================================================
-   Milky Shakes Drinks — Artisan Thermal Receipt Printer
-   Inspired by tactile retail POS terminals & stepped paper feeds.
-   Brand theme: Warm Cocoa (#381F15), Rich Caramel (#BA724C), Cream (#FDF6EC)
-   ZERO EMOJIS: Clean SVGs, realistic thermal typography, serrated cut edge.
-   ========================================================================== */
+/* Thermal Receipt Printer */
 
 :root {
   --printer-width: 440px;

@@ -328,9 +328,7 @@
   will-change: transform, opacity;
 }
 
-/* ==========================================================
-   CAROUSEL ANIMATION KEYFRAMES & STYLING (PHYSICAL TRANSITIONS)
-   ========================================================== */
+/* Carousel Animation Keyframes */
 
 /* 1. Outgoing Main Shake: Smooth Cinematic Glide & Drop towards Bottom-Middle-Left */
 .spotlight-shake-wrapper.falling-exit {
@@ -855,9 +853,7 @@
   }
 }
 
-/* ==========================================================
-   SECTION 2: BRAND PHILOSOPHY & INGREDIENT SHOWCASE (SCROLL DOWN)
-   ========================================================== */
+/* Brand Philosophy */
 
 .brand-philosophy-section {
   position: relative;
@@ -1042,9 +1038,7 @@
   display: block;
 }
 
-/* ==========================================================
-   SECTION 3: DELICIOUS FLAVOURS SHOWCASE CAROUSEL (SCROLL MORE)
-   ========================================================== */
+/* Flavours Menu */
 
 .flavours-menu-section {
   position: relative;
@@ -1365,9 +1359,7 @@
   color: rgba(253, 238, 204, 0.65);
 }
 
-/* ==========================================================================
-   Section 4: FAQ Section with Grand Emerald Green Card
-   ========================================================================== */
+/* FAQ Section */
 .landing-faq-section {
   background: #FDEECC;
   padding: 30px 48px 0;

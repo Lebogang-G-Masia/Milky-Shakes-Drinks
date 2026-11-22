@@ -143,9 +143,6 @@ export default function FaqPage({ currentUser, onSignOut }) {
       {/* Main FAQ Content */}
       <main className="box-main-content">
         <div style={{ textAlign: 'center', maxWidth: '800px', margin: '20px auto 40px' }}>
-          <div className="deck-header-badge" style={{ display: 'inline-flex', marginBottom: '12px' }}>
-            Got Questions?
-          </div>
           <h1 className="box-page-title" style={{ fontSize: '38px', marginBottom: '12px' }}>
             Frequently Asked Questions
           </h1>

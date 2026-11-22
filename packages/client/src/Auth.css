@@ -1,7 +1,4 @@
-/* ==========================================================================
-   Milky Shakes Drinks — Modern Artisan Auth Styles (Login & Multi-Step Sign-Up)
-   Palette: Warm Cream (#FDEECC), Caramel (#BA724C), Cocoa (#381F15), Sage (#2D7D54)
-   ========================================================================== */
+/* Authentication Styles */
 
 :root {
   --auth-cream: #FDEECC;
@@ -177,9 +174,7 @@
   max-width: 380px;
 }
 
-/* ==========================================================================
-   Multi-Step Micro-Stepper Header (Registration)
-   ========================================================================== */
+/* Registration Stepper Header */
 .auth-stepper-track {
   display: flex;
   align-items: center;
@@ -229,9 +224,7 @@
   background: var(--auth-sage);
 }
 
-/* ==========================================================================
-   Form Components
-   ========================================================================== */
+/* Form Components */
 .auth-form-wrapper {
   width: 100%;
   display: flex;

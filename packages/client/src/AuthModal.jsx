@@ -5,11 +5,9 @@ import { hashPassword } from './SignUp';
 export default function AuthModal({ isOpen, onClose, onAuthSuccess, packSummary }) {
   const [mode, setMode] = useState('login'); // 'login' | 'signup'
 
-  // Login inputs
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // Signup inputs
   const [signupFirstName, setSignupFirstName] = useState('');
   const [signupMobile, setSignupMobile] = useState('');
   const [signupEmail, setSignupEmail] = useState('');

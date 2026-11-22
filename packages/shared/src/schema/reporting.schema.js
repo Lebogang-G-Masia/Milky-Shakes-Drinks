@@ -296,8 +296,8 @@ export function calculateAggregatedMetrics(orders = []) {
 }
 
 /**
- * Sanitizes an order record for administrative reporting (AC-FR-005.1).
- * Excludes internal schema secrets, raw connection credentials, or sensitive auth data.
+ * Sanitizes an order record for administrative reporting.
+ * Excludes internal database keys or sensitive auth data.
  * @param {Object} order
  * @returns {Object}
  */

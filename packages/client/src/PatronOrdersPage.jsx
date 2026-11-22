@@ -246,12 +246,11 @@ export default function PatronOrdersPage({ currentUser, onSignOut }) {
         {/* Welcome & Loyalty Status Banner */}
         <section className="patron-hero-card">
           <div className="patron-hero-left">
-            <span className="patron-badge-label">Patron Order Portal</span>
             <h1 className="patron-hero-title">
               Welcome back, {currentUser?.name || currentUser?.first_name || 'Artisan Sipper'}
             </h1>
             <p className="patron-hero-subtitle">
-              Review your past artisanal milkshake orders, reprint tax receipts, or track scheduled pickups at Toppan Security branches.
+              Review your past artisanal milkshake orders, reprint tax receipts, or track scheduled pickups at collection branches.
             </p>
           </div>
 
@@ -292,7 +291,7 @@ export default function PatronOrdersPage({ currentUser, onSignOut }) {
         <section className="patron-orders-section">
           <div className="section-header-row">
             <div>
-              <h2 className="section-title">Past Order History (Mandatory #9)</h2>
+              <h2 className="section-title">Past Order History</h2>
               <p className="section-subtext">Chronological history of all milkshakes crafted for you</p>
             </div>
 
@@ -421,14 +420,14 @@ export default function PatronOrdersPage({ currentUser, onSignOut }) {
                         type="button"
                         className="btn-action-receipt"
                         onClick={() => setSelectedReceiptOrder(ord)}
-                        title="View & Re-print tactile receipt"
+                        title="View & print tax receipt"
                       >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M6 9V2h12v7" />
                           <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                           <path d="M6 14h12v8H6z" />
                         </svg>
-                        <span>View Tactile Receipt</span>
+                        <span>View Receipt</span>
                       </button>
 
                       <button

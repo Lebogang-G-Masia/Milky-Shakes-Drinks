@@ -85,8 +85,7 @@ function formatDate(dateValue) {
 }
 
 /**
- * Generates an artisan, responsive HTML email template for Milky Shakes Drinks.
- * Adheres strictly to project constraints: zero emojis, SVG or clean typography.
+ * Generates responsive HTML email template for order receipts.
  */
 export function buildOrderReceiptHtml({
   customerName = 'Valued Customer',

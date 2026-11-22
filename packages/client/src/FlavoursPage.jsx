@@ -228,9 +228,6 @@ export default function FlavoursPage({ currentUser, onSignOut }) {
       {/* Main Flavours Showcase Content */}
       <main className="box-main-content">
         <div style={{ textAlign: 'center', maxWidth: '800px', margin: '20px auto 40px' }}>
-          <div className="deck-header-badge" style={{ display: 'inline-flex', marginBottom: '12px' }}>
-            Handcrafted in Small Batches
-          </div>
           <h1 className="box-page-title" style={{ fontSize: '38px', marginBottom: '12px' }}>
             Our Artisan Flavours
           </h1>

@@ -41,7 +41,7 @@ export const SIGNATURE_FLAVOURS = [
     id: "cookies",
     name: "Cookies & Kräm",
     subtitle: "Swedish cookies and kram",
-    price: "$12.00",
+    price: "R65.00",
     desc: "Dark cocoa biscuit crumbles folded in rich double cream",
     image: "/images/hero-spotlight-milkshake.png",
   },
@@ -49,7 +49,7 @@ export const SIGNATURE_FLAVOURS = [
     id: "strawberry",
     name: "Wild Strawbar",
     subtitle: "Swedish Strawbar swirl ice cream",
-    price: "$10.00",
+    price: "R60.00",
     desc: "Sun-ripened organic strawberries & thick sweet dairy",
     image: "/images/Strawberry.png",
   },
@@ -57,7 +57,7 @@ export const SIGNATURE_FLAVOURS = [
     id: "mint",
     name: "Mint Choklad",
     subtitle: "Swedish mint chokaldchip",
-    price: "$14.00",
+    price: "R70.00",
     desc: "Crisp garden mint infused with single-origin dark chocolate chips",
     image: "/images/mint.png",
   },
@@ -906,29 +906,6 @@ export default function LandingPage({
               <span>Mon – Sun: 10:00 – 22:00</span>
               <span>Store Pickup &amp; Express Delivery</span>
               <span>hello@milkyshakes.com</span>
-              <button
-                type="button"
-                onClick={() => navigate("/management")}
-                style={{
-                  marginTop: "10px",
-                  background: "rgba(255, 255, 255, 0.12)",
-                  color: "#FDEECC",
-                  border: "1px solid rgba(255, 255, 255, 0.25)",
-                  borderRadius: "9999px",
-                  padding: "5px 12px",
-                  fontSize: "12px",
-                  fontWeight: "700",
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  width: "fit-content",
-                  transition: "all 0.2s ease",
-                }}
-                title="Open Manager Operations Portal"
-              >
-                Manager Portal
-              </button>
             </div>
           </div>
         </div>

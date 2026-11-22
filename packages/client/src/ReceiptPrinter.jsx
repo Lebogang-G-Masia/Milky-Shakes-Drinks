@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 import { formatCurrency } from '@milky-shakes/shared';
 import './ReceiptPrinter.css';
 
-// SVG Icons (ZERO EMOJIS)
+// Icons
 export function IconCircleNotch({ className = '', size = 18 }) {
   return (
     <svg
@@ -352,7 +352,7 @@ export function MilkyReceiptPrinter({
 
   const [liveStatus, setLiveStatus] = useState(order?.status || 'PAID');
 
-  // Coherent Real-Time Status Synchronization with Supabase & Manager Portal
+  // Order status synchronization
   useEffect(() => {
     if (!order) return;
     let isMounted = true;
@@ -409,12 +409,10 @@ export function MilkyReceiptPrinter({
   useEffect(() => {
     if (!autoPlay) return;
 
-    // 1. Processing phase (payment verification)
     const timer1 = setTimeout(() => {
       setStage('printing');
     }, 900);
 
-    // 2. Printing phase (stepped paper feed)
     const timer2 = setTimeout(() => {
       setStage('complete');
     }, 3400);

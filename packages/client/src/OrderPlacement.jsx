@@ -14,7 +14,7 @@ import AuthModal from './AuthModal';
 import { MilkyReceiptPrinter, ReceiptPrinter } from './ReceiptPrinter';
 import './OrderPlacement.css';
 
-// Clean SVG Icons (NO EMOJIS)
+// Icons
 function IconDice() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -436,7 +436,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
   const [discountStatus, setDiscountStatus] = useState(null);
   const [patronCompletedOrders, setPatronCompletedOrders] = useState(() => currentUser?.completed_orders_count || 0);
 
-  // Fetch patron completed orders for Frequent Customer Discount (URS 3.4.5)
+  // Fetch patron completed orders for loyalty discount
   useEffect(() => {
     if (currentUser?.id || currentUser?.email) {
       const email = currentUser.email || '';
@@ -995,11 +995,11 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
     setActiveSlotIndex(index);
   }
 
-  // Calculate volume discount tier or frequent customer discount automatically (URS 3.4.5)
+  // Calculate volume discount tier or frequent customer discount
   const effectiveDiscount = useMemo(() => {
     if (appliedDiscount) return appliedDiscount;
 
-    // 1. Check Frequent Customer Loyalty Tiers (URS 3.4.5)
+    // Frequent customer loyalty tiers
     if (patronCompletedOrders >= 10) {
       return { discount_percent: 15, tier_name: `Frequent Customer VIP Tier (15% Off - ${patronCompletedOrders} completed orders)` };
     }
@@ -1433,11 +1433,11 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
     return (
       <div className="box-builder-canvas">
         <div className="review-stage-card" role="alert">
-          <h2 className="box-page-title" style={{ color: '#B91C1C' }}>Database Breakage Notice</h2>
-          <p className="box-page-subtitle">Table: {databaseError.table}</p>
-          <p style={{ marginTop: '12px', color: '#7C6053' }}>{databaseError.message}</p>
+          <h2 className="box-page-title" style={{ color: '#B91C1C' }}>Menu Unavailable</h2>
+          <p className="box-page-subtitle">We are having trouble loading the ingredients catalog right now.</p>
+          <p style={{ marginTop: '12px', color: '#7C6053' }}>Please check your connection and reload to craft your order.</p>
           <button type="button" className="btn-final-checkout" onClick={() => window.location.reload()} style={{ marginTop: '20px', maxWidth: '240px' }}>
-            Retry Connection
+            Reload Menu
           </button>
         </div>
       </div>
@@ -2181,7 +2181,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
               {fulfillmentMode === 'PICKUP' && (
                 <div className="fulfillment-field-box">
                   <label htmlFor="store-select" className="fulfillment-field-label">
-                    Collection Store Location (Toppan Security Branch)
+                    Collection Store Location
                   </label>
                   <select
                     id="store-select"
@@ -2372,7 +2372,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         )}
       </main>
 
-      {/* Payment Processing Modal (FR-004) */}
+      {/* Payment Processing Modal */}
       {showPaymentModal && pendingOrderData && (
         <div className="payment-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="pay-modal-title">
           <div className="payment-modal-card">
@@ -2446,7 +2446,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
               </div>
             ) : (
               <div style={{ background: '#FAF4EC', padding: '16px', borderRadius: '14px', marginBottom: '16px', fontSize: '13px', color: '#7C6053' }}>
-                Instant EFT simulator: Your banking portal will securely authorize {formatCurrency(pendingOrderData.totals.total)}.
+                Instant EFT: Your banking portal will securely authorize {formatCurrency(pendingOrderData.totals.total)}.
               </div>
             )}
 
