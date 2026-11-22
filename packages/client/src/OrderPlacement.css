@@ -1,7 +1,11 @@
 /* ==========================================================================
-   Milky Shakes Drinks — Artisan Box Builder (Order Page Styles)
-   Palette: Warm Cream (#FDF6EC), Caramel (#BA724C), Cocoa (#381F15), Sage (#2D7D54)
-   NO EMOJIS: Clean SVGs, modern typography, and tactile craft styling
+   Milky Shakes Drinks — Artisan Box Builder & 3D Parallax Studio
+   Features:
+   1. Real photographic hero milkshakes (Cookies & Cream, Wild Strawberry, Mint)
+   2. Interactive 3D Cursor Tilt Parallax with specular glare reflection
+   3. Interactive Ingredient Dropper with physics-based topping cascade
+   4. Tactile Kraft Carry Tray with realistic mini bottle cutouts
+   5. ZERO EMOJIS: Clean SVGs and modern craft typography
    ========================================================================== */
 
 :root {
@@ -23,13 +27,13 @@
   --box-error: #B91C1C;
   --box-error-bg: #FEF2F2;
   --box-radius-card: 28px;
-  --box-radius-slot: 22px;
+  --box-radius-slot: 20px;
   --box-radius-pill: 9999px;
-  --box-shadow: 0 12px 36px rgba(56, 31, 21, 0.08);
-  --box-shadow-hover: 0 18px 44px rgba(56, 31, 21, 0.12);
+  --box-shadow: 0 14px 40px rgba(56, 31, 21, 0.08);
+  --box-shadow-hover: 0 20px 50px rgba(56, 31, 21, 0.14);
 }
 
-/* Full Page Wrapper */
+/* Canvas Container */
 .box-builder-canvas {
   min-height: 100vh;
   width: 100%;
@@ -42,7 +46,7 @@
   overflow-x: hidden;
 }
 
-/* Top Caramel Melt Wave */
+/* Ambient Melting Caramel Wave */
 .box-top-wave-wrap {
   position: absolute;
   top: 0;
@@ -64,7 +68,7 @@
 .box-nav-bar {
   position: relative;
   z-index: 10;
-  max-width: 1320px;
+  max-width: 1360px;
   margin: 0 auto 28px;
   background: var(--box-white);
   border-radius: var(--box-radius-pill);
@@ -101,7 +105,7 @@
   color: var(--box-caramel);
 }
 
-/* Pack Size Selector in Navbar */
+/* Pack Size Selector in Nav */
 .box-pack-size-selector {
   display: flex;
   align-items: center;
@@ -139,7 +143,7 @@
   color: var(--box-text-dark);
 }
 
-/* User & Controls in Nav */
+/* Nav User Controls */
 .box-nav-user-group {
   display: flex;
   align-items: center;
@@ -154,9 +158,6 @@
   font-size: 13px;
   font-weight: 700;
   color: var(--box-cocoa);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .btn-nav-admin {
@@ -198,13 +199,13 @@
 .box-main-content {
   position: relative;
   z-index: 5;
-  max-width: 1320px;
+  max-width: 1360px;
   margin: 0 auto;
 }
 
-/* Header & Gamified Discount Track */
+/* Page Title & Gamified Discount Meter */
 .box-header-row {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .box-page-title {
@@ -262,15 +263,9 @@
 .meter-current-status {
   color: var(--box-cocoa);
   font-weight: 800;
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .meter-tier-step {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   color: var(--box-text-muted);
 }
 
@@ -284,329 +279,416 @@
   font-weight: 800;
 }
 
-/* 2-Column Studio Layout */
+/* Studio 2-Column Grid Layout */
 .box-builder-grid {
   display: grid;
-  grid-template-columns: 1.15fr 0.95fr;
+  grid-template-columns: 1.22fr 1fr;
   gap: 28px;
   align-items: start;
 }
 
-/* Left Column: The Carry Box Tray */
-.box-tray-card {
+/* ==========================================================================
+   LEFT COLUMN: 3D PARALLAX SPOTLIGHT STAGE
+   ========================================================================== */
+.spotlight-stage-card {
   background: var(--box-white);
   border-radius: var(--box-radius-card);
-  padding: 28px 30px 24px;
+  padding: 28px 30px;
   box-shadow: var(--box-shadow);
   border: 1.5px solid var(--box-border);
   box-sizing: border-box;
-}
-
-.tray-header-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.tray-title-group {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.tray-title {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--box-text-dark);
-  margin: 0;
-}
-
-.tray-subtitle {
-  font-size: 12.5px;
-  color: var(--box-text-muted);
-  margin: 0;
-}
-
-.btn-barista-choice {
-  background: var(--box-caramel-light);
-  border: 1.5px solid var(--box-caramel);
-  color: var(--box-caramel);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 800;
-  padding: 8px 18px;
-  border-radius: var(--box-radius-pill);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-}
-
-.btn-barista-choice:hover {
-  background: var(--box-caramel);
-  color: #FFFFFF;
-  transform: translateY(-1px);
-}
-
-/* Slots Grid inside Tray */
-.tray-slots-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 22px;
-}
-
-.box-slot-item {
-  background: var(--box-sand);
-  border-radius: var(--box-radius-slot);
-  padding: 16px 18px 14px;
-  border: 1.5px solid var(--box-border);
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 250px;
   position: relative;
-  transition: all 0.25s cubic-bezier(0.2, 0, 0.2, 1);
-  cursor: pointer;
+  overflow: hidden;
 }
 
-.box-slot-item:hover {
-  border-color: var(--box-caramel);
-  box-shadow: 0 8px 24px rgba(56, 31, 21, 0.08);
-  transform: translateY(-2px);
-}
-
-.box-slot-item.is-active-slot {
-  border-color: var(--box-caramel);
-  border-width: 2.5px;
-  background: var(--box-caramel-light);
-  box-shadow: 0 0 0 3px rgba(186, 114, 76, 0.2);
-}
-
-.box-slot-item.is-empty-slot {
-  border-style: dashed;
-  border-color: #D8C7B5;
-  background: rgba(250, 244, 236, 0.6);
-}
-
-.slot-top-row {
+.stage-top-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
 }
 
-.slot-pill-badge {
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  padding: 4px 10px;
-  border-radius: var(--box-radius-pill);
-  text-transform: uppercase;
-}
-
-.slot-pill-badge.badge-filled {
-  background: var(--box-sand);
-  border: 1px solid var(--box-border);
-  color: var(--box-text-muted);
-}
-
-.slot-pill-badge.badge-active {
-  background: var(--box-caramel);
-  color: #FFFFFF;
-}
-
-.slot-pill-badge.badge-empty {
-  background: rgba(220, 200, 180, 0.4);
-  color: var(--box-text-muted);
-}
-
-.slot-delete-btn {
-  background: transparent;
-  border: none;
-  color: var(--box-text-subtle);
-  cursor: pointer;
-  padding: 4px;
+.stage-pill-badge {
   display: inline-flex;
   align-items: center;
-  transition: color 0.2s ease;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: var(--box-radius-pill);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--box-sage-light);
+  color: var(--box-sage);
 }
 
-.slot-delete-btn:hover {
-  color: var(--box-error);
-}
-
-/* Slot Graphic (Visual Milkshake Shaker Bottle) */
-.slot-shaker-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 6px 0 12px;
-  position: relative;
-}
-
-.slot-bottle-art {
-  width: 60px;
-  height: 96px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.bottle-cap {
-  width: 28px;
-  height: 10px;
-  background: #BA724C;
-  border-radius: 4px 4px 0 0;
-  border: 1.5px solid #381F15;
-}
-
-.bottle-straw {
-  position: absolute;
-  top: -12px;
-  right: 18px;
-  width: 6px;
-  height: 24px;
-  background: #BA724C;
-  border-radius: 3px;
-  transform: rotate(12deg);
-}
-
-.bottle-glass {
-  width: 56px;
-  height: 80px;
-  border-radius: 6px 6px 16px 16px;
-  border: 2px solid #5A3828;
-  position: relative;
-  overflow: hidden;
-  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.4);
-}
-
-.bottle-liquid {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 88%;
-  border-radius: 0 0 14px 14px;
-}
-
-.bottle-swirl {
-  position: absolute;
-  top: 35%;
-  left: 10%;
-  width: 80%;
-  height: 12px;
-  border-radius: 6px;
-  opacity: 0.7;
-}
-
-/* Empty Slot Placeholder */
-.slot-empty-target {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 24px 0;
+.stage-tilt-hint {
+  font-size: 11.5px;
+  font-weight: 700;
   color: var(--box-text-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.empty-target-plus {
-  width: 44px;
-  height: 44px;
+/* 3D Cursor Tilt Parallax Chamber */
+.parallax-stage-chamber {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  border-radius: 24px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.9) 0%, #FAF4EC 100%);
+  border: 1px solid var(--box-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1000px;
+  cursor: crosshair;
+  user-select: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  margin-bottom: 22px;
+}
+
+/* Dynamic Radial Aura behind Glass */
+.spotlight-atmospheric-aura {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  filter: blur(48px);
+  pointer-events: none;
+  transition: background 0.4s ease;
+  z-index: 1;
+}
+
+/* Soft Pedestal Shadow on Ground */
+.spotlight-pedestal-shadow {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 190px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(56, 31, 21, 0.2);
+  filter: blur(12px);
+  pointer-events: none;
+  transition: transform 0.1s ease-out;
+  z-index: 2;
+}
+
+/* The Tilting Milkshake Glass Body */
+.parallax-glass-wrapper {
+  position: relative;
+  z-index: 10;
+  width: 220px;
+  height: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.realistic-hero-milkshake-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 16px 28px rgba(56, 31, 21, 0.18));
+  transition: filter 0.2s ease;
+}
+
+/* Specular Glare / Glass Reflection Overlay */
+.glass-specular-glare {
+  position: absolute;
+  top: 15%;
+  left: 20%;
+  width: 60%;
+  height: 70%;
+  border-radius: 40px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 60%);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  transition: transform 0.1s ease-out;
+  z-index: 12;
+}
+
+/* ==========================================================================
+   INTERACTIVE INGREDIENT DROPPER PARTICLES
+   ========================================================================== */
+.ingredient-dropper-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 20;
+  overflow: hidden;
+}
+
+.dropper-particle {
+  position: absolute;
+  top: -30px;
+  border-radius: 4px;
+  animation: ingredientFall 0.85s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  opacity: 0;
+}
+
+/* Particle Types */
+.dropper-particle.type-cookie {
+  background: #381F15;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dropper-particle.type-choc {
+  background: #2E1A11;
+  clip-path: polygon(50% 0%, 100% 70%, 50% 100%, 0% 70%);
+}
+
+.dropper-particle.type-berry {
+  background: #BA2E44;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(186, 46, 68, 0.4);
+}
+
+.dropper-particle.type-cream {
+  background: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.dropper-particle.type-caramel {
+  background: #BA724C;
+  border-radius: 2px;
+}
+
+@keyframes ingredientFall {
+  0% {
+    opacity: 0;
+    transform: translateY(0) rotate(0deg) scale(0.6);
+  }
+  20% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+    transform: translateY(180px) rotate(220deg) scale(1);
+  }
+  95% {
+    transform: translateY(172px) rotate(240deg) scale(1.05);
+  }
+  100% {
+    opacity: 0.9;
+    transform: translateY(178px) rotate(240deg) scale(1);
+  }
+}
+
+/* Ripple ring that radiates on the whipped cream when toppings land */
+.dropper-landing-ripple {
+  position: absolute;
+  top: 85px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(186, 114, 76, 0.6);
+  animation: landingRipple 0.6s ease-out forwards;
+  pointer-events: none;
+  z-index: 15;
+}
+
+@keyframes landingRipple {
+  0% {
+    transform: translateX(-50%) scale(0.4);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) scale(1.3);
+    opacity: 0;
+  }
+}
+
+/* Stage Details Box below 3D glass */
+.stage-details-dock {
+  background: var(--box-sand);
+  border: 1.5px solid var(--box-border);
+  border-radius: 20px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.stage-details-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--box-text-dark);
+  margin: 0 0 4px 0;
+}
+
+.stage-details-meta {
+  font-size: 12px;
+  color: var(--box-text-muted);
+  font-weight: 600;
+  margin: 0;
+}
+
+.stage-details-price {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--box-caramel);
+}
+
+/* ==========================================================================
+   THE TACTILE CARRY TRAY (INSET IN LEFT COLUMN)
+   ========================================================================== */
+.stage-tray-section {
+  border-top: 1px solid var(--box-border);
+  padding-top: 20px;
+}
+
+.tray-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.tray-section-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--box-text-dark);
+  margin: 0;
+}
+
+.tray-slots-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.tray-slot-mini-card {
+  background: var(--box-sand);
+  border: 1.5px solid var(--box-border);
+  border-radius: 16px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 140px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0.2, 1);
+  box-sizing: border-box;
+  position: relative;
+  text-align: center;
+}
+
+.tray-slot-mini-card:hover {
+  border-color: var(--box-caramel);
+  transform: translateY(-2px);
+}
+
+.tray-slot-mini-card.is-active-slot {
+  background: var(--box-caramel-light);
+  border-color: var(--box-caramel);
+  border-width: 2px;
+  box-shadow: 0 0 0 3px rgba(186, 114, 76, 0.18);
+}
+
+.tray-slot-mini-card.is-empty-slot {
+  border-style: dashed;
+  background: rgba(250, 244, 236, 0.5);
+}
+
+.mini-slot-num {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--box-text-muted);
+  letter-spacing: 0.04em;
+}
+
+.tray-slot-mini-card.is-active-slot .mini-slot-num {
+  color: var(--box-caramel);
+}
+
+/* Realistic Mini Cutout in Slot */
+.mini-slot-photo-frame {
+  width: 52px;
+  height: 72px;
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mini-slot-photo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(56, 31, 21, 0.15));
+}
+
+.mini-empty-target {
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: rgba(220, 200, 180, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--box-caramel);
+  margin: 16px 0;
 }
 
-.empty-target-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--box-caramel);
-}
-
-/* Slot Details Row */
-.slot-info-box {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.slot-recipe-title {
-  font-size: 14.5px;
+.mini-slot-title {
+  font-size: 11.5px;
   font-weight: 800;
   color: var(--box-text-dark);
-  margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 90px;
 }
 
-.slot-recipe-meta {
-  font-size: 11.5px;
-  color: var(--box-text-muted);
-  font-weight: 500;
-  line-height: 1.35;
-  margin: 0;
-}
-
-.slot-bottom-action-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(220, 195, 160, 0.4);
-}
-
-.slot-price-tag {
-  font-size: 14.5px;
-  font-weight: 800;
-  color: var(--box-caramel);
-}
-
-.slot-edit-trigger {
-  font-size: 12.5px;
+.mini-slot-price {
+  font-size: 11px;
   font-weight: 700;
   color: var(--box-caramel);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
 }
 
-/* Tray Bottom Utility Toolbar */
-.tray-bottom-toolbar {
+/* Tray Bottom Utility Row */
+.tray-utility-row {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-top: 8px;
+  gap: 10px;
 }
 
 .btn-tray-utility {
   flex: 1;
-  height: 44px;
+  height: 40px;
   background: var(--box-sand);
   border: 1.5px solid var(--box-border);
   color: var(--box-text-dark);
   border-radius: var(--box-radius-pill);
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   transition: all 0.2s ease;
 }
 
@@ -621,7 +703,9 @@
   cursor: not-allowed;
 }
 
-/* Right Column: Slot Recipe Customizer Deck */
+/* ==========================================================================
+   RIGHT COLUMN: RECIPE CUSTOMIZER & INGREDIENT DROPPER CONTROLS
+   ========================================================================== */
 .box-deck-card {
   background: var(--box-white);
   border-radius: var(--box-radius-card);
@@ -643,18 +727,18 @@
   text-transform: uppercase;
   background: var(--box-sage-light);
   color: var(--box-sage);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .deck-title {
   font-size: 22px;
   font-weight: 800;
   color: var(--box-text-dark);
-  margin: 0 0 20px 0;
+  margin: 0 0 18px 0;
 }
 
 .deck-step-section {
-  margin-bottom: 22px;
+  margin-bottom: 20px;
 }
 
 .deck-step-label {
@@ -723,14 +807,14 @@
   gap: 10px;
 }
 
-/* Toppings Pills Wrap */
+/* Toppings (The Interactive Droppers) */
 .deck-toppings-wrap {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.btn-topping-pill {
+.btn-topping-dropper {
   background: var(--box-sand);
   border: 1.5px solid var(--box-border);
   border-radius: var(--box-radius-pill);
@@ -743,22 +827,24 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0.2, 1);
 }
 
-.btn-topping-pill:hover {
+.btn-topping-dropper:hover {
   background: #FFFFFF;
   border-color: var(--box-caramel);
+  transform: translateY(-1px);
 }
 
-.btn-topping-pill.is-selected {
+.btn-topping-dropper.is-selected {
   background: var(--box-caramel-light);
   border-color: var(--box-caramel);
   color: var(--box-cocoa);
   font-weight: 800;
+  box-shadow: 0 2px 8px rgba(186, 114, 76, 0.2);
 }
 
-/* Lock Recipe Button */
+/* Lock Button */
 .btn-lock-slot {
   width: 100%;
   height: 52px;
@@ -847,7 +933,7 @@
 }
 
 /* ==========================================================================
-   Review & Fulfillment Stage (Second Screen View)
+   REVIEW & FULFILLMENT STAGE
    ========================================================================== */
 .review-stage-card {
   background: var(--box-white);
@@ -888,7 +974,6 @@
   border-color: var(--box-caramel);
 }
 
-/* Pack Packed Items List */
 .packed-items-stack {
   display: flex;
   flex-direction: column;
@@ -937,7 +1022,7 @@
   color: var(--box-caramel);
 }
 
-/* Fulfillment Channel Switcher */
+/* Fulfillment Channels */
 .fulfillment-channels-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -983,7 +1068,6 @@
   color: var(--box-caramel);
 }
 
-/* Store & Address Inputs */
 .fulfillment-field-box {
   background: var(--box-sand);
   border: 1.5px solid var(--box-border);
@@ -1024,7 +1108,6 @@
   border-color: var(--box-caramel);
 }
 
-/* Promo Voucher Row */
 .promo-code-row {
   display: flex;
   gap: 10px;
@@ -1068,7 +1151,6 @@
   background: var(--box-caramel-hover);
 }
 
-/* Receipt Breakdown Card */
 .receipt-table-card {
   background: var(--box-sand);
   border: 1.5px solid var(--box-border);
@@ -1113,7 +1195,6 @@
   color: var(--box-caramel);
 }
 
-/* Final Checkout Action Button */
 .btn-final-checkout {
   width: 100%;
   height: 56px;
@@ -1156,7 +1237,7 @@
 }
 
 /* ==========================================================================
-   Payment Modal & Confirmed Receipt
+   PAYMENT MODAL & CONFIRMED INVOICE
    ========================================================================== */
 .payment-modal-backdrop {
   position: fixed;
@@ -1303,7 +1384,7 @@
   background: var(--box-cocoa);
 }
 
-/* Confirmed Printable Receipt Screen */
+/* Confirmed Printable Invoice */
 .confirmed-receipt-card {
   background: #FFFFFF;
   border-radius: var(--box-radius-card);
@@ -1356,7 +1437,7 @@
 }
 
 /* Responsive Media Queries */
-@media (max-width: 1024px) {
+@media (max-width: 1080px) {
   .box-builder-grid {
     grid-template-columns: 1fr;
   }
@@ -1375,8 +1456,8 @@
     border-radius: 20px;
   }
 
-  .tray-slots-grid {
-    grid-template-columns: 1fr;
+  .tray-slots-strip {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .deck-flavour-grid,

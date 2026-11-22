@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import {
   calculateOrderTotals,
@@ -155,25 +155,47 @@ function getItemPrice(item) {
   return isNaN(num) ? 0 : num;
 }
 
-// Map flavour name to bottle visual colors
+// Map flavour name to visual styling & realistic hero image
 function getFlavourVisual(name = '') {
   const lower = name.toLowerCase();
-  if (lower.includes('strawberry')) {
-    return { liquid: '#F5CCD3', swirl: '#BA2E44', border: '#BA2E44' };
+  if (lower.includes('strawberry') || lower.includes('jordgubb') || lower.includes('berry')) {
+    return {
+      liquid: '#F5CCD3',
+      swirl: '#BA2E44',
+      border: '#BA2E44',
+      aura: 'rgba(245, 180, 195, 0.45)',
+      image: '/images/Strawberry.png',
+      alt: 'Wild Strawberry Artisan Milkshake',
+    };
   }
-  if (lower.includes('mint')) {
-    return { liquid: '#C6EBDD', swirl: '#276E5B', border: '#276E5B' };
+  if (lower.includes('mint') || lower.includes('choklad') || lower.includes('peppermint')) {
+    return {
+      liquid: '#C6EBDD',
+      swirl: '#276E5B',
+      border: '#276E5B',
+      aura: 'rgba(160, 230, 205, 0.45)',
+      image: '/images/mint.png',
+      alt: 'Mint Dark Chocolate Artisan Milkshake',
+    };
   }
   if (lower.includes('cookie') || lower.includes('kram') || lower.includes('cream')) {
-    return { liquid: '#E6D3BE', swirl: '#5A3828', border: '#5A3828' };
+    return {
+      liquid: '#E6D3BE',
+      swirl: '#5A3828',
+      border: '#5A3828',
+      aura: 'rgba(235, 200, 160, 0.45)',
+      image: '/images/hero-spotlight-milkshake.png',
+      alt: 'Cookies & Cream Artisan Milkshake',
+    };
   }
-  if (lower.includes('banana') || lower.includes('vanilla')) {
-    return { liquid: '#F5DFBA', swirl: '#D49D42', border: '#D49D42' };
-  }
-  if (lower.includes('caramel') || lower.includes('pretzel') || lower.includes('chocolate')) {
-    return { liquid: '#E0BEA2', swirl: '#BA724C', border: '#BA724C' };
-  }
-  return { liquid: '#EAD7C2', swirl: '#BA724C', border: '#BA724C' };
+  return {
+    liquid: '#EAD7C2',
+    swirl: '#BA724C',
+    border: '#BA724C',
+    aura: 'rgba(235, 200, 160, 0.45)',
+    image: '/images/hero-spotlight-milkshake.png',
+    alt: 'Artisan Crafted Milkshake',
+  };
 }
 
 export default function OrderPlacement({ currentUser, onSignOut, onNavigateToManagement }) {
@@ -326,8 +348,74 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
     return Math.round(cost * 100) / 100;
   }
 
-  // Active Drink Shortcut
+  // Active Drink Shortcut & Visual Resolution
   const activeDrink = drinks[activeSlotIndex] || drinks[0];
+  const activeFlavour = flavours.find((f) => String(f.id) === String(activeDrink?.flavourId));
+  const activeConsistency = consistencies.find((c) => String(c.id) === String(activeDrink?.consistencyId));
+  const activeTopping = toppings.find((t) => String(t.id) === String(activeDrink?.toppingId));
+  const activeVisual = getFlavourVisual(activeFlavour ? getItemName(activeFlavour) : 'Signature');
+
+  // 3D Cursor Tilt Parallax State & Handlers
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, glareX: 0, glareY: 0 });
+  const [isHoveringGlass, setIsHoveringGlass] = useState(false);
+  const chamberRef = useRef(null);
+
+  const handleChamberMouseMove = (e) => {
+    if (!chamberRef.current) return;
+    const rect = chamberRef.current.getBoundingClientRect();
+    const xPct = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
+    const yPct = (e.clientY - rect.top) / rect.height - 0.5;
+    setTilt({
+      rotateY: +(xPct * 18).toFixed(2),
+      rotateX: +(-yPct * 18).toFixed(2),
+      glareX: +(-xPct * 30).toFixed(2),
+      glareY: +(-yPct * 30).toFixed(2),
+    });
+  };
+
+  const handleChamberMouseEnter = () => setIsHoveringGlass(true);
+  const handleChamberMouseLeave = () => {
+    setIsHoveringGlass(false);
+    setTilt({ rotateX: 0, rotateY: 0, glareX: 0, glareY: 0 });
+  };
+
+  // Interactive Ingredient Dropper Particles State & Trigger
+  const [particles, setParticles] = useState([]);
+  const [showRipple, setShowRipple] = useState(false);
+
+  function triggerDropperParticles(toppingName = '') {
+    const lower = toppingName.toLowerCase();
+    let typeClass = 'type-caramel';
+    if (lower.includes('cookie') || lower.includes('oreo')) typeClass = 'type-cookie';
+    else if (lower.includes('choc') || lower.includes('flake') || lower.includes('nibs') || lower.includes('brownie')) typeClass = 'type-choc';
+    else if (lower.includes('berry') || lower.includes('straw') || lower.includes('sprinkle')) typeClass = 'type-berry';
+    else if (lower.includes('marsh') || lower.includes('cream') || lower.includes('whip')) typeClass = 'type-cream';
+
+    const count = 12;
+    const newParticles = Array.from({ length: count }).map((_, i) => ({
+      id: `${Date.now()}_${i}_${Math.random()}`,
+      left: `${46 + (Math.random() * 20 - 10)}%`,
+      size: `${6 + Math.floor(Math.random() * 6)}px`,
+      delay: `${(i * 0.04).toFixed(2)}s`,
+      typeClass,
+    }));
+
+    setParticles(newParticles);
+    setShowRipple(true);
+
+    setTimeout(() => {
+      setShowRipple(false);
+    }, 700);
+
+    setTimeout(() => {
+      setParticles([]);
+    }, 1200);
+  }
+
+  function handleSelectTopping(toppingItem) {
+    updateActiveDrink('toppingId', toppingItem.id);
+    triggerDropperParticles(getItemName(toppingItem));
+  }
 
   // Update field on active drink
   function updateActiveDrink(field, value) {
@@ -744,20 +832,28 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
               Your Custom Artisan Pack ({placedOrder.items.length} Shakes)
             </h3>
             <div className="packed-items-stack">
-              {placedOrder.items.map((item) => (
-                <div key={item.number} className="packed-item-row">
-                  <div className="packed-item-left">
-                    <span className="packed-item-number">SLOT {item.number}</span>
-                    <div>
-                      <div className="packed-item-title">{item.flavour}</div>
-                      <div className="packed-item-sub">
-                        {item.consistency} | Topping: {item.topping}
+              {placedOrder.items.map((item) => {
+                const visual = getFlavourVisual(item.flavour);
+                return (
+                  <div key={item.number} className="packed-item-row">
+                    <div className="packed-item-left">
+                      <span className="packed-item-number">SLOT {item.number}</span>
+                      <img
+                        src={visual.image}
+                        alt={visual.alt}
+                        style={{ width: '38px', height: '48px', objectFit: 'contain' }}
+                      />
+                      <div>
+                        <div className="packed-item-title">{item.flavour}</div>
+                        <div className="packed-item-sub">
+                          {item.consistency} | Topping: {item.topping}
+                        </div>
                       </div>
                     </div>
+                    <span className="packed-item-price">{formatCurrency(item.cost)}</span>
                   </div>
-                  <span className="packed-item-price">{formatCurrency(item.cost)}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -910,129 +1006,194 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
         {/* STAGE 1: BOX BUILDER */}
         {currentStage === 'builder' && (
           <div className="box-builder-grid">
-            {/* LEFT COLUMN: Physical Carry Tray with Interactive Slots */}
-            <section className="box-tray-card" aria-label="Kraft Carry Tray">
-              <div className="tray-header-bar">
-                <div className="tray-title-group">
-                  <h2 className="tray-title">Artisan Kraft Carry Tray</h2>
-                  <p className="tray-subtitle">Tap any slot below to select and modify its recipe</p>
-                </div>
-                <button
-                  type="button"
-                  className="btn-barista-choice"
-                  onClick={handleBaristaChoice}
-                  title="Randomize recipes for empty slots"
-                >
-                  <IconDice /> Barista's Choice
-                </button>
+            {/* LEFT COLUMN: 3D PARALLAX SPOTLIGHT STAGE & TACTILE CARRY TRAY */}
+            <section className="spotlight-stage-card" aria-label="3D Artisan Shake Studio">
+              <div className="stage-top-meta">
+                <span className="stage-pill-badge">
+                  <IconCheck /> Slot {activeSlotIndex + 1} Spotlight
+                </span>
+                <span className="stage-tilt-hint">
+                  Move cursor over shake for 3D perspective
+                </span>
               </div>
 
-              {/* Slots Grid */}
-              <div className="tray-slots-grid">
-                {drinks.map((drink, index) => {
-                  const slotNumber = index + 1;
-                  const isFilled = Boolean(drink.flavourId);
-                  const isActive = activeSlotIndex === index;
-                  const flavourObj = flavours.find((f) => String(f.id) === String(drink.flavourId));
-                  const consistencyObj = consistencies.find((c) => String(c.id) === String(drink.consistencyId));
-                  const toppingObj = toppings.find((t) => String(t.id) === String(drink.toppingId));
-                  const visual = getFlavourVisual(flavourObj ? getItemName(flavourObj) : '');
+              {/* 3D Cursor Tilt Parallax Chamber */}
+              <div
+                ref={chamberRef}
+                className="parallax-stage-chamber"
+                onMouseMove={handleChamberMouseMove}
+                onMouseEnter={handleChamberMouseEnter}
+                onMouseLeave={handleChamberMouseLeave}
+                aria-label="3D Parallax Milkshake Preview"
+              >
+                {/* Dynamic Atmospheric Aura */}
+                <div
+                  className="spotlight-atmospheric-aura"
+                  style={{ background: activeVisual.aura }}
+                />
 
-                  return (
-                    <div
-                      key={drink.id || index}
-                      className={`box-slot-item ${isActive ? 'is-active-slot' : ''} ${isFilled ? 'is-filled-slot' : 'is-empty-slot'}`}
-                      onClick={() => setActiveSlotIndex(index)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          setActiveSlotIndex(index);
-                        }
+                {/* Soft Pedestal Shadow */}
+                <div
+                  className="spotlight-pedestal-shadow"
+                  style={{
+                    transform: `translateX(-50%) scale(${isHoveringGlass ? 1.08 : 1}) translate3d(${tilt.rotateY * 0.6}px, ${-tilt.rotateX * 0.4}px, 0)`,
+                  }}
+                />
+
+                {/* Interactive Dropper Particles Layer */}
+                <div className="ingredient-dropper-layer" aria-hidden="true">
+                  {particles.map((p) => (
+                    <span
+                      key={p.id}
+                      className={`dropper-particle ${p.typeClass}`}
+                      style={{
+                        left: p.left,
+                        width: p.size,
+                        height: p.size,
+                        animationDelay: p.delay,
                       }}
-                      aria-label={`Slot ${slotNumber}: ${isFilled ? getItemName(flavourObj) : 'Empty'}`}
-                    >
-                      {/* Slot Header */}
-                      <div className="slot-top-row">
-                        <span
-                          className={`slot-pill-badge ${
-                            isActive ? 'badge-active' : isFilled ? 'badge-filled' : 'badge-empty'
-                          }`}
-                        >
-                          {isActive ? `Slot ${slotNumber} (Editing)` : `Slot ${slotNumber}`}
-                        </span>
+                    />
+                  ))}
+                  {showRipple && <div className="dropper-landing-ripple" />}
+                </div>
 
-                        {isFilled && (
-                          <button
-                            type="button"
-                            className="slot-delete-btn"
-                            onClick={(e) => handleClearSlot(index, e)}
-                            title={`Clear Slot ${slotNumber}`}
-                            aria-label={`Clear Slot ${slotNumber}`}
-                          >
-                            <IconTrash />
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Graphic & Info */}
-                      {isFilled ? (
-                        <>
-                          <div className="slot-shaker-center">
-                            <div className="slot-bottle-art">
-                              <div className="bottle-straw" />
-                              <div className="bottle-cap" />
-                              <div className="bottle-glass" style={{ borderColor: visual.border }}>
-                                <div className="bottle-liquid" style={{ background: visual.liquid }}>
-                                  <div className="bottle-swirl" style={{ background: visual.swirl }} />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="slot-info-box">
-                            <h3 className="slot-recipe-title">{getItemName(flavourObj)}</h3>
-                            <p className="slot-recipe-meta">
-                              {getItemName(consistencyObj)} | {getItemName(toppingObj)}
-                            </p>
-                          </div>
-
-                          <div className="slot-bottom-action-row">
-                            <span className="slot-price-tag">{formatCurrency(drink.cost)}</span>
-                            <span className="slot-edit-trigger">
-                              Edit <IconEdit />
-                            </span>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="slot-empty-target">
-                          <div className="empty-target-plus">+</div>
-                          <span className="empty-target-label">Tap to Configure</span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                {/* 3D Tilting Glass Body */}
+                <div
+                  className="parallax-glass-wrapper"
+                  style={{
+                    transform: `perspective(1000px) rotateY(${tilt.rotateY}deg) rotateX(${tilt.rotateX}deg) scale3d(${
+                      isHoveringGlass ? 1.04 : 1
+                    }, ${isHoveringGlass ? 1.04 : 1}, 1)`,
+                    transition: isHoveringGlass ? 'transform 0.08s ease-out' : 'transform 0.4s ease-out',
+                  }}
+                >
+                  <img
+                    src={activeVisual.image}
+                    alt={activeVisual.alt}
+                    className="realistic-hero-milkshake-img"
+                  />
+                  <div
+                    className="glass-specular-glare"
+                    style={{
+                      transform: `translate3d(${tilt.glareX}px, ${tilt.glareY}px, 0)`,
+                    }}
+                  />
+                </div>
               </div>
 
-              {/* Utility Toolbar */}
-              <div className="tray-bottom-toolbar">
-                <button
-                  type="button"
-                  className="btn-tray-utility"
-                  onClick={handleFillRemainingWithSlot1}
-                  disabled={!drinks[0]?.flavourId}
+              {/* Live Active Slot Details Dock */}
+              <div className="stage-details-dock">
+                <div>
+                  <h3 className="stage-details-title">
+                    {activeFlavour ? getItemName(activeFlavour) : 'Select a Flavour'}
+                  </h3>
+                  <p className="stage-details-meta">
+                    {activeConsistency ? getItemName(activeConsistency) : 'Consistency'} &bull;{' '}
+                    {activeTopping ? getItemName(activeTopping) : 'Topping'}
+                  </p>
+                </div>
+                <div className="stage-details-price">
+                  {formatCurrency(activeDrink.cost || (activeFlavour ? getItemPrice(activeFlavour) : 0))}
+                </div>
+              </div>
+
+              {/* Tactile Carry Tray Inset */}
+              <div className="stage-tray-section">
+                <div className="tray-section-header">
+                  <h3 className="tray-section-title">Artisan Kraft Carry Tray ({packSize} Slots)</h3>
+                  <button
+                    type="button"
+                    className="btn-barista-choice"
+                    onClick={handleBaristaChoice}
+                    title="Randomize recipes for empty slots"
+                  >
+                    <IconDice /> Barista's Choice
+                  </button>
+                </div>
+
+                <div
+                  className="tray-slots-strip"
+                  style={{
+                    gridTemplateColumns: `repeat(${packSize}, 1fr)`,
+                  }}
                 >
-                  <IconCopy /> Fill Remaining with Slot 1
-                </button>
-                <button
-                  type="button"
-                  className="btn-tray-utility"
-                  onClick={handleResetBox}
-                  disabled={filledDrinksCount === 0}
-                >
-                  <IconTrash /> Reset Box
-                </button>
+                  {drinks.map((drink, index) => {
+                    const isFilled = Boolean(drink.flavourId);
+                    const isActive = activeSlotIndex === index;
+                    const f = flavours.find((item) => String(item.id) === String(drink.flavourId));
+                    const slotVisual = getFlavourVisual(f ? getItemName(f) : '');
+
+                    return (
+                      <div
+                        key={drink.id || index}
+                        className={`tray-slot-mini-card ${isActive ? 'is-active-slot' : ''} ${
+                          isFilled ? 'is-filled-slot' : 'is-empty-slot'
+                        }`}
+                        onClick={() => setActiveSlotIndex(index)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            setActiveSlotIndex(index);
+                          }
+                        }}
+                      >
+                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span className="mini-slot-num">SLOT {index + 1}</span>
+                          {isFilled && (
+                            <button
+                              type="button"
+                              className="slot-delete-btn"
+                              onClick={(e) => handleClearSlot(index, e)}
+                              title={`Clear Slot ${index + 1}`}
+                              style={{ padding: 2, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--box-text-muted)' }}
+                            >
+                              <IconTrash />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="mini-slot-photo-frame">
+                          {isFilled ? (
+                            <img
+                              src={slotVisual.image}
+                              alt={slotVisual.alt}
+                              className="mini-slot-photo"
+                            />
+                          ) : (
+                            <div className="mini-empty-target">+</div>
+                          )}
+                        </div>
+
+                        <div className="mini-slot-title">
+                          {isFilled && f ? getItemName(f) : 'Configure'}
+                        </div>
+                        <div className="mini-slot-price">
+                          {isFilled ? formatCurrency(drink.cost) : '---'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="tray-utility-row">
+                  <button
+                    type="button"
+                    className="btn-tray-utility"
+                    onClick={handleFillRemainingWithSlot1}
+                    disabled={!drinks[0]?.flavourId}
+                  >
+                    <IconCopy /> Fill Remaining with Slot 1
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-tray-utility"
+                    onClick={handleResetBox}
+                    disabled={filledDrinksCount === 0}
+                  >
+                    <IconTrash /> Reset Box
+                  </button>
+                </div>
               </div>
             </section>
 
@@ -1088,9 +1249,9 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
                 </div>
               </div>
 
-              {/* Step 3: Toppings */}
+              {/* Step 3: Toppings (The Interactive Droppers) */}
               <div className="deck-step-section">
-                <span className="deck-step-label">3. Crown with Topping</span>
+                <span className="deck-step-label">3. Crown with Topping (Interactive Dropper)</span>
                 <div className="deck-toppings-wrap">
                   {toppings.map((item) => {
                     const isSelected = String(activeDrink.toppingId) === String(item.id);
@@ -1099,8 +1260,8 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
                       <button
                         key={item.id}
                         type="button"
-                        className={`btn-topping-pill ${isSelected ? 'is-selected' : ''}`}
-                        onClick={() => updateActiveDrink('toppingId', item.id)}
+                        className={`btn-topping-dropper ${isSelected ? 'is-selected' : ''}`}
+                        onClick={() => handleSelectTopping(item)}
                       >
                         {isSelected && <IconCheck />}
                         <span>{getItemName(item)}</span>
@@ -1173,10 +1334,16 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
                   const f = flavours.find((x) => String(x.id) === String(item.flavourId));
                   const c = consistencies.find((x) => String(x.id) === String(item.consistencyId));
                   const t = toppings.find((x) => String(x.id) === String(item.toppingId));
+                  const visual = getFlavourVisual(f ? getItemName(f) : '');
                   return (
                     <div key={item.id || idx} className="packed-item-row">
                       <div className="packed-item-left">
                         <span className="packed-item-number">SLOT {idx + 1}</span>
+                        <img
+                          src={visual.image}
+                          alt={visual.alt}
+                          style={{ width: '38px', height: '48px', objectFit: 'contain' }}
+                        />
                         <div>
                           <div className="packed-item-title">{f ? getItemName(f) : 'Unassigned Shake'}</div>
                           <div className="packed-item-sub">
