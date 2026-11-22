@@ -5,9 +5,43 @@ import OrderPlacement from "./OrderPlacement";
 import ManagementDashboard from "./ManagementDashboard";
 import { USER_ROLES } from "@milky-shakes/shared";
 
+const AUTH_STORAGE_KEY = "milky_auth_user";
+
 export default function App() {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem(AUTH_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      console.warn("Failed to load saved session:", e);
+      return null;
+    }
+  });
   const [activeView, setActiveView] = useState("landing"); // "landing" | "order" | "management" | "auth"
+
+  const handleSignOut = () => {
+    try {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    } catch (e) {
+      console.warn("Failed to clear saved session:", e);
+    }
+    setCurrentUser(null);
+    setActiveView("landing");
+  };
+
+  const handleAuthSuccess = (user) => {
+    try {
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+    } catch (e) {
+      console.warn("Failed to save auth session:", e);
+    }
+    setCurrentUser(user);
+    if (user?.role === USER_ROLES.MANAGER || user?.role === USER_ROLES.STAFF) {
+      setActiveView("management");
+    } else {
+      setActiveView("order");
+    }
+  };
 
   // Logged-in experience
   if (currentUser) {
@@ -16,10 +50,7 @@ export default function App() {
         <ManagementDashboard
           currentUser={currentUser}
           onNavigateToOrder={() => setActiveView("order")}
-          onSignOut={() => {
-            setCurrentUser(null);
-            setActiveView("landing");
-          }}
+          onSignOut={handleSignOut}
         />
       );
     }
@@ -28,7 +59,14 @@ export default function App() {
       return (
         <LandingPage
           onStartOrder={() => setActiveView("order")}
-          onOpenAuth={() => setActiveView(currentUser.role === USER_ROLES.MANAGER || currentUser.role === USER_ROLES.STAFF ? "management" : "order")}
+          onOpenAuth={() =>
+            setActiveView(
+              currentUser.role === USER_ROLES.MANAGER ||
+                currentUser.role === USER_ROLES.STAFF
+                ? "management"
+                : "order"
+            )
+          }
         />
       );
     }
@@ -37,47 +75,26 @@ export default function App() {
       <OrderPlacement
         currentUser={currentUser}
         onNavigateToManagement={() => setActiveView("management")}
-        onSignOut={() => {
-          setCurrentUser(null);
-          setActiveView("landing");
-        }}
+        onSignOut={handleSignOut}
       />
     );
   }
 
-  // Guest / Unauthenticated experience
+  // Unauthenticated experience: Ordering requires an active account!
   if (activeView === "landing") {
     return (
       <LandingPage
-        onStartOrder={() => setActiveView("order")}
+        onStartOrder={() => setActiveView("auth")}
         onOpenAuth={() => setActiveView("auth")}
       />
     );
   }
 
-  if (activeView === "order") {
-    return (
-      <OrderPlacement
-        currentUser={null}
-        onNavigateToManagement={() => setActiveView("auth")}
-        onSignOut={() => setActiveView("landing")}
-      />
-    );
-  }
-
+  // Any other view for unauthenticated users redirects to AuthPage
   return (
     <AuthPage
-      onAuthSuccess={(user) => {
-        setCurrentUser(user);
-        // Default managers/staff directly to management view if desired, or let them navigate
-        if (user?.role === USER_ROLES.MANAGER || user?.role === USER_ROLES.STAFF) {
-          setActiveView("management");
-        } else {
-          setActiveView("order");
-        }
-      }}
+      onAuthSuccess={handleAuthSuccess}
       onBackToLanding={() => setActiveView("landing")}
-      onContinueAsGuest={() => setActiveView("order")}
     />
   );
 }

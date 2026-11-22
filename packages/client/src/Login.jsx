@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { supabase } from "./supabaseClient";
 import { hashPassword } from "./SignUp";
 
-export default function Login({ onSwitch, onSuccess, onGuest }) {
+export default function Login({ onSwitch, onSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
@@ -143,25 +143,6 @@ export default function Login({ onSwitch, onSuccess, onGuest }) {
       >
         {loading ? "Signing in..." : "Sign In"}
       </button>
-
-      {/* Divider & Guest Access */}
-      {onGuest && (
-        <>
-          <div className="auth-divider-row" aria-hidden="true">
-            <span className="auth-divider-line" />
-            <span>or</span>
-            <span className="auth-divider-line" />
-          </div>
-
-          <button
-            type="button"
-            className="btn-guest-checkout"
-            onClick={onGuest}
-          >
-            Continue as Guest (No Password Required)
-          </button>
-        </>
-      )}
 
       {/* Switch to Sign Up */}
       <p className="auth-switch-prompt">

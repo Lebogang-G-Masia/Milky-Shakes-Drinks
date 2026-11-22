@@ -6,7 +6,6 @@ import "./Auth.css";
 export default function AuthPage({
   onAuthSuccess,
   onBackToLanding,
-  onContinueAsGuest,
 }) {
   const [mode, setMode] = useState("login"); // "login" | "signup"
   const [signupStep, setSignupStep] = useState(1); // 1 | 2
@@ -27,10 +26,6 @@ export default function AuthPage({
           />
         </svg>
       </div>
-
-      {/* Floating Ambient Cream Scoops */}
-      <div className="auth-ambient-scoop auth-scoop-left" aria-hidden="true" />
-      <div className="auth-ambient-scoop auth-scoop-right" aria-hidden="true" />
 
       {/* Back to Home Navigation Button */}
       {onBackToLanding && (
@@ -109,7 +104,6 @@ export default function AuthPage({
               setSignupStep(1);
             }}
             onSuccess={(user) => onAuthSuccess && onAuthSuccess(user)}
-            onGuest={onContinueAsGuest}
           />
         ) : (
           <SignUp

@@ -18,7 +18,6 @@ export default function SignUp({ onSwitch, onSuccess, onStepChange }) {
   // Step 1 fields
   const [firstName, setFirstName] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
-  const [role, setRole] = useState("PATRON");
 
   // Step 2 fields
   const [email, setEmail] = useState("");
@@ -104,7 +103,7 @@ export default function SignUp({ onSwitch, onSuccess, onStepChange }) {
             email: normalizedEmail,
             mobile_number: mobileNumber.trim(),
             password_hash: hashedPassword,
-            role: role || "PATRON",
+            role: "PATRON",
             completed_orders_count: 0,
             is_active: true,
           },
@@ -193,23 +192,6 @@ export default function SignUp({ onSwitch, onSuccess, onStepChange }) {
             />
           </div>
 
-          {/* Account Role Selector */}
-          <div className="auth-field-group">
-            <label className="auth-field-label" htmlFor="auth-role">
-              Account Type
-            </label>
-            <select
-              id="auth-role"
-              className="auth-input auth-select"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
-              <option value="PATRON">Sipping Patron (Customer)</option>
-              <option value="STAFF">Store Staff</option>
-              <option value="MANAGER">Store Manager</option>
-            </select>
-          </div>
-
           {/* Delivery Tracking Tip Card */}
           <div className="auth-tip-card">
             <span>📱</span>
@@ -291,12 +273,6 @@ export default function SignUp({ onSwitch, onSuccess, onStepChange }) {
               placeholder="••••••••••••"
               required
             />
-          </div>
-
-          {/* Security Assurance Card */}
-          <div className="auth-tip-card is-security">
-            <span>🔒</span>
-            <span>Protected with SHA-256 encryption &amp; Supabase Auth.</span>
           </div>
 
           {/* Error Banner */}
