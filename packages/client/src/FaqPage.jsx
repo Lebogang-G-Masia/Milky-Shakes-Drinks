@@ -66,7 +66,7 @@ export default function FaqPage({ currentUser, onSignOut }) {
           onClick={() => navigate('/')}
           role="button"
           tabIndex={0}
-          title="Milky — Artisan Milkshakes"
+          title="milky"
         >
           milky
         </div>

@@ -45,7 +45,7 @@ export default function PhilosophyPage({ currentUser, onSignOut }) {
           onClick={() => navigate('/')}
           role="button"
           tabIndex={0}
-          title="Milky — Artisan Milkshakes"
+          title="milky"
         >
           milky
         </div>

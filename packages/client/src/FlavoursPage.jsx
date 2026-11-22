@@ -18,9 +18,9 @@ export default function FlavoursPage({ currentUser, onSignOut }) {
   const flavoursList = [
     {
       id: 'cookies',
-      name: 'Cookies & Kräm',
+      name: 'Cookies & Cream',
       category: 'CLASSIC',
-      price: 'R65.00',
+      price: 'R42.00',
       tagline: 'Dark cocoa biscuit crumbles folded into velvety double cream',
       profile: ['Madagascar Vanilla', 'House-baked Cookie Crumb', 'Dark Cocoa'],
       image: '/images/hero-spotlight-milkshake.png',
@@ -29,9 +29,9 @@ export default function FlavoursPage({ currentUser, onSignOut }) {
     },
     {
       id: 'strawberry',
-      name: 'Wild Strawbar',
+      name: 'Wild Strawberry',
       category: 'FRUIT',
-      price: 'R60.00',
+      price: 'R35.00',
       tagline: 'Sun-ripened organic strawberries whipped into silky dairy bliss',
       profile: ['Organic Strawberry Coulis', 'Fresh Whole Milk', 'Pure Cane'],
       image: '/images/Strawberry.png',
@@ -40,9 +40,9 @@ export default function FlavoursPage({ currentUser, onSignOut }) {
     },
     {
       id: 'mint',
-      name: 'Mint Choklad',
+      name: 'Mint Chocolate Chip',
       category: 'MINT',
-      price: 'R70.00',
+      price: 'R40.00',
       tagline: 'Crisp garden mint infused with single-origin dark chocolate chips',
       profile: ['Cold-pressed Garden Mint', '70% Dark Cocoa Nibs', 'Double Cream'],
       image: '/images/mint.png',
@@ -53,7 +53,7 @@ export default function FlavoursPage({ currentUser, onSignOut }) {
       id: 'banana',
       name: 'Banana Bliss',
       category: 'FRUIT',
-      price: 'R60.00',
+      price: 'R35.00',
       tagline: 'Sweet Cavendish bananas whipped with velvety double cream and golden caramel',
       profile: ['Cavendish Bananas', 'Fresh Whole Milk', 'Golden Caramel Swirl'],
       image: '/images/banana.png',
@@ -64,7 +64,7 @@ export default function FlavoursPage({ currentUser, onSignOut }) {
       id: 'bar_one',
       name: 'Bar One Delight',
       category: 'CLASSIC',
-      price: 'R65.00',
+      price: 'R42.00',
       tagline: 'Malted nougat caramel fudge sauce swirled in creamy dark chocolate',
       profile: ['Bar One Nougat', 'Caramel Fudge Swirl', 'Malted Cream'],
       image: '/images/bar_one.png',
@@ -75,7 +75,7 @@ export default function FlavoursPage({ currentUser, onSignOut }) {
       id: 'chocolate',
       name: 'Belgian Chocolate',
       category: 'CLASSIC',
-      price: 'R60.00',
+      price: 'R35.00',
       tagline: 'Deep 70% Belgian dark cocoa blended into silky decadent indulgence',
       profile: ['Belgian Cocoa Nibs', 'Dark Chocolate Ganache', 'Farm Cream'],
       image: '/images/chocolate.png',
@@ -86,7 +86,7 @@ export default function FlavoursPage({ currentUser, onSignOut }) {
       id: 'coffee',
       name: 'Artisan Roast Coffee',
       category: 'CLASSIC',
-      price: 'R65.00',
+      price: 'R38.00',
       tagline: 'Freshly pulled single-origin espresso whipped with sweetened cream',
       profile: ['Espresso Roast', 'Cold Brew Essence', 'Demerara Sweet Cream'],
       image: '/images/Coffee.png',
@@ -97,7 +97,7 @@ export default function FlavoursPage({ currentUser, onSignOut }) {
       id: 'vanilla',
       name: 'Madagascan Vanilla',
       category: 'CLASSIC',
-      price: 'R55.00',
+      price: 'R32.00',
       tagline: 'Pure Bourbon vanilla bean caviar folded into luscious double cream',
       profile: ['Madagascar Vanilla Bean', 'Double Cream', 'Sweet Churn Dairy'],
       image: '/images/vanilla.png',
@@ -150,7 +150,7 @@ export default function FlavoursPage({ currentUser, onSignOut }) {
           onClick={() => navigate('/')}
           role="button"
           tabIndex={0}
-          title="Milky — Artisan Milkshakes"
+          title="milky"
         >
           milky
         </div>

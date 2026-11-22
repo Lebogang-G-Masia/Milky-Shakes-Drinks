@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "./router";
 import { getDraftFilledCount } from "./orderDraft";
+import { supabase } from "./supabaseClient";
 import "./LandingPage.css";
 
 export const FLAVORS = [
@@ -39,25 +40,25 @@ export const FLAVORS = [
 export const SIGNATURE_FLAVOURS = [
   {
     id: "cookies",
-    name: "Cookies & Kräm",
-    subtitle: "Swedish cookies and kram",
-    price: "R65.00",
+    name: "Cookies & Cream",
+    subtitle: "Cookies & Cream",
+    price: "R42.00",
     desc: "Dark cocoa biscuit crumbles folded in rich double cream",
     image: "/images/hero-spotlight-milkshake.png",
   },
   {
     id: "strawberry",
-    name: "Wild Strawbar",
-    subtitle: "Swedish Strawbar swirl ice cream",
-    price: "R60.00",
+    name: "Wild Strawberry",
+    subtitle: "Wild Strawberry",
+    price: "R35.00",
     desc: "Sun-ripened organic strawberries & thick sweet dairy",
     image: "/images/Strawberry.png",
   },
   {
     id: "mint",
-    name: "Mint Choklad",
-    subtitle: "Swedish mint chokaldchip",
-    price: "R70.00",
+    name: "Mint Chocolate Chip",
+    subtitle: "Mint Chocolate Chip",
+    price: "R40.00",
     desc: "Crisp garden mint infused with single-origin dark chocolate chips",
     image: "/images/mint.png",
   },
@@ -104,6 +105,33 @@ export default function LandingPage({
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("Home");
   const [liveCartCount, setLiveCartCount] = useState(() => getDraftFilledCount());
+  const [signatureFlavours, setSignatureFlavours] = useState(SIGNATURE_FLAVOURS);
+
+  useEffect(() => {
+    supabase
+      .from("flavours")
+      .select("id, name, base_price")
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setSignatureFlavours((prev) =>
+            prev.map((item) => {
+              const match = data.find((f) => {
+                const n = (f.name || "").toLowerCase();
+                if (item.id === "cookies") return n.includes("oreo") || n.includes("cookie") || n.includes("kram");
+                if (item.id === "strawberry") return n.includes("strawb");
+                if (item.id === "mint") return n.includes("mint");
+                return false;
+              });
+              if (match && match.base_price !== undefined) {
+                return { ...item, price: `R${Number(match.base_price).toFixed(2)}` };
+              }
+              return item;
+            })
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const handleUpdate = () => setLiveCartCount(getDraftFilledCount());
@@ -209,7 +237,7 @@ export default function LandingPage({
             }}
             role="button"
             tabIndex={0}
-            title="Milky — Artisan Milkshakes"
+            title="milky"
           >
             milky
           </div>
@@ -673,7 +701,7 @@ export default function LandingPage({
           {/* Pedestal Showcase Grid */}
           <div className="flavours-carousel-container">
             <div className="flavours-cards-track">
-              {SIGNATURE_FLAVOURS.map((item) => (
+              {signatureFlavours.map((item) => (
                 <div className="flavour-pedestal-card" key={item.id}>
                   {/* Floating product cup overflowing the top */}
                   <div className="card-product-overflow">
@@ -686,7 +714,7 @@ export default function LandingPage({
 
                   <div className="card-body-content">
                     <div className="card-price">{item.price}</div>
-                    <div className="card-flavour-sub">{item.subtitle}</div>
+                    <div className="card-flavour-sub">{item.name || item.subtitle}</div>
                     <p className="card-flavour-desc">{item.desc}</p>
                     <button
                       className="btn-card-buy"

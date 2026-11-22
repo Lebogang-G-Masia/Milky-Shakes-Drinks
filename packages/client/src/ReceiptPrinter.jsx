@@ -434,8 +434,15 @@ export function MilkyReceiptPrinter({
   const deliveryFee = order.totals?.deliveryFee ?? order.delivery_fee ?? 0;
   const fulfillmentMode = order.fulfillment?.mode || order.fulfillment_mode || 'PICKUP';
   const isPickup = fulfillmentMode === 'PICKUP';
-  const storeName = order.fulfillment?.restaurantName || 'Toppan Security — Irene HQ (Centurion / Pretoria)';
-  const storeAddress = order.fulfillment?.restaurantAddress || '1st Floor, Block B, Southdowns Office Park, Irene, 0157';
+  const rawStoreName = order.fulfillment?.restaurantName;
+  const storeName = rawStoreName && !rawStoreName.includes('Toppan')
+    ? rawStoreName
+    : 'Milky Shakes Studio — Irene Craft Kitchen (Pretoria)';
+
+  const rawStoreAddress = order.fulfillment?.restaurantAddress;
+  const storeAddress = rawStoreAddress && !rawStoreAddress.includes('Southdowns')
+    ? rawStoreAddress
+    : 'Shop 14, The Frosted Spoon Galleria, 77 Sweetwater Lane, Irene, 0157';
   const settledAt = order.payment?.settledAt
     ? new Date(order.payment.settledAt).toLocaleString()
     : new Date().toLocaleString();

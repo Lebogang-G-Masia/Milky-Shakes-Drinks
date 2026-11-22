@@ -108,8 +108,15 @@ export function buildOrderReceiptHtml({
   const mode = fulfillment.mode || order.fulfillmentMode || 'PICKUP';
   const isPickup = mode === 'PICKUP';
 
-  const storeName = fulfillment.restaurantName || 'Toppan Security — Irene HQ (Centurion / Pretoria)';
-  const storeAddress = fulfillment.restaurantAddress || '1st Floor, Block B, Southdowns Office Park, Irene, 0157';
+  const rawStoreName = fulfillment.restaurantName;
+  const storeName = rawStoreName && !rawStoreName.includes('Toppan')
+    ? rawStoreName
+    : 'Milky Shakes Studio — Irene Craft Kitchen (Pretoria)';
+
+  const rawStoreAddress = fulfillment.restaurantAddress;
+  const storeAddress = rawStoreAddress && !rawStoreAddress.includes('Southdowns')
+    ? rawStoreAddress
+    : 'Shop 14, The Frosted Spoon Galleria, 77 Sweetwater Lane, Irene, 0157';
   const pickupSlot = fulfillment.pickupTimeSlot || (fulfillment.pickupTime ? formatDate(fulfillment.pickupTime) : 'Ready in 20-30 mins');
 
   const deliveryAddress = fulfillment.streetAddress
@@ -305,7 +312,7 @@ export function buildOrderReceiptHtml({
             <td style="background-color: #F5EFEB; padding: 20px 28px; text-align: center; border-top: 1px solid #EADBCC;">
               <div style="font-size: 11px; font-weight: 600; color: #26160F;">Milky Shakes Drinks (Pty) Ltd.</div>
               <div style="font-size: 10.5px; color: #7A6254; margin-top: 3px;">
-                Toppan Security — Irene HQ &bull; Southdowns Office Park, Centurion, Pretoria
+                Milky Shakes Studio &bull; Shop 14, The Frosted Spoon Galleria, 77 Sweetwater Lane, Irene, Pretoria
               </div>
               <div style="font-size: 10px; color: #9C8577; margin-top: 6px;">
                 This email confirms your payment and serves as your official Tax Invoice.
@@ -375,10 +382,10 @@ export function buildOrderReceiptText({
     `  Mode: ${fulfillment.mode || order.fulfillmentMode || 'PICKUP'}`,
     fulfillment.mode === 'DELIVERY'
       ? `  Delivery Address: ${fulfillment.streetAddress || ''}, ${fulfillment.postalCode || ''}`
-      : `  Pickup Store: ${fulfillment.restaurantName || 'Toppan Security — Irene HQ'}`,
+      : `  Pickup Store: ${fulfillment.restaurantName && !fulfillment.restaurantName.includes('Toppan') ? fulfillment.restaurantName : 'Milky Shakes Studio — Irene Craft Kitchen'}`,
     '',
     'Sub-Zero Cold-Lock Guaranteed for 60 Mins.',
-    'Milky Shakes Drinks (Pty) Ltd. | Toppan Security — Irene HQ',
+    'Milky Shakes Drinks (Pty) Ltd. | Shop 14, The Frosted Spoon Galleria, 77 Sweetwater Lane, Irene, 0157',
     '====================================================',
   ].filter(Boolean);
 

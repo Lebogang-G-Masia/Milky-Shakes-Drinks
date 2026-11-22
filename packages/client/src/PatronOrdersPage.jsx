@@ -71,8 +71,8 @@ export default function PatronOrdersPage({ currentUser, onSignOut }) {
             status: o.status,
             createdAt: o.created_at,
             pickupTime: o.pickup_time,
-            restaurantName: o.restaurants?.name || 'Toppan Security — Irene HQ',
-            restaurantAddress: o.restaurants?.address || '',
+            restaurantName: o.restaurants?.name && !o.restaurants.name.includes('Toppan') ? o.restaurants.name : 'Milky Shakes Studio — Irene Craft Kitchen',
+            restaurantAddress: o.restaurants?.address && !o.restaurants.address.includes('Southdowns') ? o.restaurants.address : 'Shop 14, The Frosted Spoon Galleria, 77 Sweetwater Lane, Irene, 0157',
             drinksCount: o.number_of_drinks || (o.order_items ? o.order_items.length : 1),
             drinks: (o.order_items || []).map((item) => ({
               flavourName: item.flavour_name_snapshot,
@@ -191,7 +191,7 @@ export default function PatronOrdersPage({ currentUser, onSignOut }) {
           onClick={() => navigate('/')}
           role="button"
           tabIndex={0}
-          title="Milky — Artisan Milkshakes"
+          title="milky"
         >
           milky
         </div>
@@ -369,7 +369,7 @@ export default function PatronOrdersPage({ currentUser, onSignOut }) {
                         <circle cx="12" cy="10" r="3" />
                       </svg>
                       <div>
-                        <strong>{ord.restaurantName || 'Toppan Security — South Africa'}</strong>
+                        <strong>{ord.restaurantName && !ord.restaurantName.includes('Toppan') ? ord.restaurantName : 'Milky Shakes Studio — Irene Craft Kitchen'}</strong>
                         <div className="pickup-time-hint">Pickup Time: {pickupStr}</div>
                       </div>
                     </div>

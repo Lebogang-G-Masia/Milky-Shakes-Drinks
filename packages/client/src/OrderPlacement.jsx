@@ -344,44 +344,44 @@ function getFlavourVisual(name = '') {
   };
 }
 
-// Official Toppan Security collection branches across South Africa
-export const TOPPAN_SECURITY_BRANCHES = [
-  {
-    id: '5bf910ce-6107-463e-907d-261a075ccc29',
-    name: 'Toppan Security — Irene HQ (Centurion / Pretoria)',
-    address: '1st Floor, Block B, Southdowns Office Park, Cnr John Vorster & Karee St, Irene, 0157',
-    contact_number: '+27 12 676 0000',
+// Made-up Artisan Milkshake Collection Studio Branches
+export const MADE_UP_BRANCH_DATA = {
+  '5bf910ce-6107-463e-907d-261a075ccc29': {
+    name: 'Milky Shakes Studio — Irene Craft Kitchen (Pretoria)',
+    address: 'Shop 14, The Frosted Spoon Galleria, 77 Sweetwater Lane, Irene, 0157',
+    contact_number: '+27 12 555 4321',
     city: 'Pretoria / Centurion, Gauteng',
   },
-  {
-    id: 'e373e658-fa8c-4ee0-999a-05544aefa950',
-    name: 'Toppan Security — Johannesburg (Sandton Hub)',
-    address: '135 Rivonia Road, Sandton, Johannesburg, Gauteng, 2196',
-    contact_number: '+27 11 784 1000',
+  'e373e658-fa8c-4ee0-999a-05544aefa950': {
+    name: 'Milky Shakes Lounge — Sandton Neon Bar',
+    address: 'Pod 12, Golden Caramel Arcade, 88 Sundae Boulevard, Sandton, 2196',
+    contact_number: '+27 11 555 8899',
     city: 'Johannesburg, Gauteng',
   },
-  {
-    id: 'eb5f2a95-9f3f-4176-88bf-1ae6b2718163',
-    name: 'Toppan Security — Cape Town (Century City Hub)',
-    address: 'The Boulevard Office Park, Century Boulevard, Century City, Cape Town, 7441',
-    contact_number: '+27 21 552 2000',
+  'eb5f2a95-9f3f-4176-88bf-1ae6b2718163': {
+    name: 'Milky Shakes Studio — Century City Breeze',
+    address: 'The Sub-Zero Parlour, 9 Frost Wave Way, Century City, Cape Town, 7441',
+    contact_number: '+27 21 555 7711',
     city: 'Cape Town, Western Cape',
   },
-  {
-    id: '6b4e4a54-5287-4a7d-916d-3a2573de9e66',
-    name: 'Toppan Security — Durban (Umhlanga Ridge Hub)',
-    address: '21 Richefond Circle, Ridgeside Office Park, Umhlanga, Durban, 4319',
-    contact_number: '+27 31 566 3000',
+  '6b4e4a54-5287-4a7d-916d-3a2573de9e66': {
+    name: 'Milky Shakes Kiosk — Umhlanga Foam Deck',
+    address: 'Promenade 3, Ocean Mist Boardwalk, Umhlanga Ridge, Durban, 4319',
+    contact_number: '+27 31 555 3344',
     city: 'Durban, KwaZulu-Natal',
   },
-  {
-    id: '185f3f6a-d98a-4956-b0d1-0a15760501c8',
-    name: 'Toppan Security — Gqeberha (Fairview Hub)',
-    address: '120 Norvic Drive, Greenacres / Fairview, Gqeberha, 6070',
-    contact_number: '+27 41 363 4000',
+  '185f3f6a-d98a-4956-b0d1-0a15760501c8': {
+    name: 'Milky Shakes Studio — Fairview Berry Hub',
+    address: 'Studio 5, Cotton Candy Plaza, 120 Velvet Creek Drive, Gqeberha, 6070',
+    contact_number: '+27 41 555 9900',
     city: 'Gqeberha, Eastern Cape',
   },
-];
+};
+
+export const TOPPAN_SECURITY_BRANCHES = Object.entries(MADE_UP_BRANCH_DATA).map(([id, data]) => ({
+  id,
+  ...data,
+}));
 
 export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding, onAuthSuccess }) {
   const { navigate } = useRouter();
@@ -565,10 +565,22 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         }
 
         const { data: restData } = await supabase.from('restaurants').select('*').eq('is_active', true);
-        const toppanBranches = (restData || []).filter((r) =>
-          (r.name || '').toLowerCase().includes('toppan')
-        );
-        const activeBranches = toppanBranches.length > 0 ? toppanBranches : TOPPAN_SECURITY_BRANCHES;
+        const sourceBranches = restData && restData.length > 0 ? restData : TOPPAN_SECURITY_BRANCHES;
+        const activeBranches = sourceBranches.map((b) => {
+          const override = MADE_UP_BRANCH_DATA[b.id];
+          if (override) {
+            return { ...b, ...override };
+          }
+          if (b.address && (b.address.includes('Southdowns') || (b.name && b.name.includes('Toppan')))) {
+            return {
+              ...b,
+              name: 'Milky Shakes Studio — Irene Craft Kitchen (Pretoria)',
+              address: 'Shop 14, The Frosted Spoon Galleria, 77 Sweetwater Lane, Irene, 0157',
+              contact_number: '+27 12 555 4321',
+            };
+          }
+          return b;
+        });
         setRestaurants(activeBranches);
         setPickupRestaurantId((prev) =>
           prev && activeBranches.some((b) => b.id === prev) ? prev : activeBranches[0]?.id
@@ -1454,7 +1466,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
             onClick={() => navigate('/')}
             role="button"
             tabIndex={0}
-            title="Milky — Artisan Milkshakes"
+            title="milky"
           >
             milky
           </div>
@@ -1538,7 +1550,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
           onClick={() => navigate('/')}
           role="button"
           tabIndex={0}
-          title="Milky — Artisan Milkshakes"
+          title="milky"
         >
           milky
         </div>
