@@ -9,6 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
     "@milky-shakes/shared": "*",
     "@supabase/supabase-js": "^2.45.1",
     "react": "^19.3.1",

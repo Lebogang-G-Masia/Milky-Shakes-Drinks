@@ -9,11 +9,35 @@ import FaqPage from "./FaqPage";
 import ManagementDashboard from "./ManagementDashboard";
 import PatronOrdersPage from "./PatronOrdersPage";
 import { USER_ROLES } from "@milky-shakes/shared";
+import { Capacitor } from "@capacitor/core";
 
 const AUTH_STORAGE_KEY = "milky_auth_user";
 
+// Helper to detect if running inside Android native app or mobile shell
+function isNativeAndroidPlatform() {
+  try {
+    if (Capacitor && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform()) {
+      return true;
+    }
+  } catch (e) {}
+
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("app") === "android" || params.get("platform") === "android") {
+      return true;
+    }
+    if (window.navigator?.userAgent?.includes("MilkyShakesAndroid")) {
+      return true;
+    }
+  }
+
+  return import.meta.env.VITE_APP_PLATFORM === "android";
+}
+
 function AppContent() {
   const { path, navigate } = useRouter();
+  const isAndroid = isNativeAndroidPlatform();
+
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const saved = localStorage.getItem(AUTH_STORAGE_KEY);
@@ -31,7 +55,7 @@ function AppContent() {
       console.warn("Failed to clear saved session:", e);
     }
     setCurrentUser(null);
-    navigate("/");
+    navigate(isAndroid ? "/auth" : "/");
   };
 
   const handleAuthSuccess = (user, returnUrl) => {
@@ -109,7 +133,8 @@ function AppContent() {
     return (
       <AuthPage
         onAuthSuccess={handleAuthSuccess}
-        onBackToLanding={() => navigate("/")}
+        onBackToLanding={() => navigate(isAndroid ? "/auth" : "/")}
+        hideBackToLanding={isAndroid}
       />
     );
   }
@@ -133,7 +158,37 @@ function AppContent() {
     );
   }
 
-  // Default: Landing Page / Home (route "/")
+  // Default route ("/"):
+  // On Android native app, bypass the marketing landing page completely!
+  // It boots straight into Login/Sign Up (if unauthenticated) or Order Builder (if signed in).
+  if (isAndroid) {
+    if (!currentUser) {
+      return (
+        <AuthPage
+          onAuthSuccess={handleAuthSuccess}
+          onBackToLanding={() => navigate("/auth")}
+          hideBackToLanding={true}
+        />
+      );
+    }
+    return (
+      <OrderPlacement
+        currentUser={currentUser}
+        onSignOut={handleSignOut}
+        onBackToLanding={() => navigate("/orders")}
+        onAuthSuccess={(user) => {
+          try {
+            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+          } catch (e) {
+            console.warn("Failed to save auth session:", e);
+          }
+          setCurrentUser(user);
+        }}
+      />
+    );
+  }
+
+  // Default for Web: Landing Page
   return (
     <LandingPage
       currentUser={currentUser}

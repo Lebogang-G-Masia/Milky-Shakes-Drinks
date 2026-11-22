@@ -8,6 +8,7 @@ import "./Auth.css";
 export default function AuthPage({
   onAuthSuccess,
   onBackToLanding,
+  hideBackToLanding = false,
 }) {
   const { navigate, params } = useRouter();
   const [mode, setMode] = useState(() => (params?.mode === "signup" ? "signup" : "login")); // "login" | "signup"
@@ -50,25 +51,30 @@ export default function AuthPage({
       </div>
 
       {/* Back Navigation Button */}
-      <div className="auth-back-nav">
-        <button
-          type="button"
-          className="btn-auth-back"
-          onClick={handleBack}
-        >
-          &larr; {params?.returnUrl ? "Back to Previous Page" : "Back to Milky Shakes"}
-        </button>
-      </div>
+      {(!hideBackToLanding || params?.returnUrl) && (
+        <div className="auth-back-nav">
+          <button
+            type="button"
+            className="btn-auth-back"
+            onClick={handleBack}
+          >
+            &larr; {params?.returnUrl ? "Back to Previous Page" : "Back to Milky Shakes"}
+          </button>
+        </div>
+      )}
 
       {/* Centered Floating Pedestal Card */}
       <main className="auth-pedestal-card" aria-labelledby="auth-main-title">
         {/* Flowing Cursive Brand Wordmark */}
         <div
           className="auth-brand-wordmark"
-          onClick={() => navigate("/")}
+          onClick={() => {
+            if (hideBackToLanding) return;
+            navigate("/");
+          }}
           role="button"
           tabIndex={0}
-          style={{ cursor: "pointer" }}
+          style={{ cursor: hideBackToLanding ? "default" : "pointer" }}
           aria-label="Milky Shakes Drinks"
         >
           milky

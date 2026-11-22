@@ -1,0 +1,9 @@
+{
+  "appId": "com.toppan.milkyshakes",
+  "appName": "Milky Shakes",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}
