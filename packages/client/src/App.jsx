@@ -142,10 +142,71 @@ function AppContent() {
   );
 }
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("UI Render Error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div
+          style={{
+            padding: "3rem 1.5rem",
+            maxWidth: "600px",
+            margin: "60px auto",
+            background: "#ffffff",
+            borderRadius: "16px",
+            border: "1px solid #fee2e2",
+            textAlign: "center",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+            fontFamily: "var(--sans)",
+          }}
+        >
+          <div style={{ fontSize: "36px", marginBottom: "12px" }}>⚠️</div>
+          <h2 style={{ color: "#b91c1c", fontSize: "20px", marginBottom: "10px" }}>
+            Something went wrong loading this page
+          </h2>
+          <p style={{ color: "#4b5563", fontSize: "14px", marginBottom: "24px" }}>
+            {this.state.error?.message || "An unexpected rendering error occurred."}
+          </p>
+          <button
+            onClick={() => {
+              this.setState({ hasError: false, error: null });
+              window.location.href = "/";
+            }}
+            style={{
+              padding: "10px 24px",
+              background: "#381F15",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: "9999px",
+              cursor: "pointer",
+              fontWeight: 600,
+              fontSize: "14px",
+            }}
+          >
+            Return to Home
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   return (
-    <RouterProvider>
-      <AppContent />
-    </RouterProvider>
+    <ErrorBoundary>
+      <RouterProvider>
+        <AppContent />
+      </RouterProvider>
+    </ErrorBoundary>
   );
 }
