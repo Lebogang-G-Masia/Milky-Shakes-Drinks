@@ -93,4 +93,47 @@
  * @property {FulfillmentDetails} fulfillment
  */
 
+/**
+ * @typedef {Object} ReportingFilters
+ * @property {'TODAY'|'LAST_7_DAYS'|'LAST_30_DAYS'|'ALL_TIME'|'CUSTOM'} [datePreset]
+ * @property {string} [startDate]
+ * @property {string} [endDate]
+ * @property {string|string[]} [status]
+ * @property {'ALL'|'PICKUP'|'DELIVERY'} [fulfillmentMode]
+ * @property {string} [flavour]
+ * @property {string} [topping]
+ * @property {number} [minTotal]
+ * @property {number} [maxTotal]
+ * @property {string} [searchTerm]
+ * @property {number} [page]
+ * @property {number} [limit]
+ */
+
+/**
+ * @typedef {Object} AggregatedMetrics
+ * @property {number} totalOrders
+ * @property {number} grossRevenue
+ * @property {number} paidOrdersCount
+ * @property {number} averageOrderValue
+ * @property {{ pickupCount: number, deliveryCount: number, pickupPercentage: number, deliveryPercentage: number }} fulfillment
+ * @property {Object.<string, number>} statusBreakdown
+ * @property {Array<{ name: string, count: number }>} topFlavours
+ * @property {Array<{ name: string, count: number }>} topToppings
+ */
+
+/**
+ * @typedef {Object} AuditLogEntry
+ * @property {string} id
+ * @property {string} [actor_id]
+ * @property {'MANAGER'|'STAFF'|'PATRON'|'SYSTEM'} actor_role
+ * @property {string} action
+ * @property {string} entity_type
+ * @property {string} entity_id
+ * @property {string} [field_name]
+ * @property {*} [previous_value]
+ * @property {*} [new_value]
+ * @property {string} [ip_address]
+ * @property {string} created_at
+ */
+
 export {};

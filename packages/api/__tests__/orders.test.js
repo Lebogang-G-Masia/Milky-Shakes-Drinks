@@ -35,7 +35,7 @@ after(async () => {
   await new Promise((resolve) => server.close(resolve));
 });
 
-describe('Milky Shakes Drinks Custom Order Placement (FR-002)', () => {
+describe('Milky Shakes Drinks Custom Order Placement', () => {
   describe('Shared Validation & Price Calculation', () => {
     it('validates a complete drink item successfully', () => {
       const drink = { flavourId: 'f1', consistencyId: 'c1', toppingId: 't1' };
@@ -50,7 +50,7 @@ describe('Milky Shakes Drinks Custom Order Placement (FR-002)', () => {
       assert.ok(errors.some((e) => e.includes('Topping')));
     });
 
-    it('calculates order totals accurately matching wireframe example', () => {
+    it('calculates order totals accurately matching sample drinks configuration', () => {
       // 2 drinks with subtotal R84.99
       const drinks = [{ cost: 42.50 }, { cost: 42.49 }];
       const totals = calculateOrderTotals(drinks, null, 0.15);
@@ -183,7 +183,7 @@ describe('Milky Shakes Drinks Custom Order Placement (FR-002)', () => {
       assert.strictEqual(data.orders.fulfillment.postalCode, '8001');
     });
 
-    it('POST /api/orders rejects Delivery missing street address or postal code (AC-FR-003.2)', async () => {
+    it('POST /api/orders rejects Delivery missing street address or postal code', async () => {
       const res = await fetch(`${baseUrl}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -212,7 +212,7 @@ describe('Milky Shakes Drinks Custom Order Placement (FR-002)', () => {
     });
   });
 
-  describe('Fulfillment Mode Validation Rules (FR-003 / AC-FR-003.2)', () => {
+  describe('Fulfillment Mode Validation Rules', () => {
     it('validates a complete Store Pickup configuration', () => {
       const fulfillment = {
         mode: FULFILLMENT_MODES.PICKUP,
@@ -261,7 +261,7 @@ describe('Milky Shakes Drinks Custom Order Placement (FR-002)', () => {
     });
   });
 
-  describe('Payment Processing & Receipt Generation (FR-004)', () => {
+  describe('Payment Processing & Receipt Generation', () => {
     let testOrderId;
     let testOrderNumber;
 
@@ -310,7 +310,7 @@ describe('Milky Shakes Drinks Custom Order Placement (FR-002)', () => {
       assert.strictEqual(data.status, PAYMENT_STATUS.PENDING);
     });
 
-    it('POST /api/webhooks/payment rejects invalid signature (AC-FR-004.1)', async () => {
+    it('POST /api/webhooks/payment rejects invalid signature', async () => {
       const payload = {
         event: 'payment.succeeded',
         transactionReference: 'txn_fake_sig',
@@ -333,7 +333,7 @@ describe('Milky Shakes Drinks Custom Order Placement (FR-002)', () => {
       assert.strictEqual(data.error, 'Invalid webhook signature');
     });
 
-    it('POST /api/webhooks/payment marks failed payment and leaves order PENDING_PAYMENT with retry guidance (AC-FR-004.2)', async () => {
+    it('POST /api/webhooks/payment marks failed payment and leaves order PENDING_PAYMENT with retry guidance', async () => {
       const payload = {
         event: 'payment.failed',
         transactionReference: `txn_fail_${Date.now()}`,
@@ -361,7 +361,7 @@ describe('Milky Shakes Drinks Custom Order Placement (FR-002)', () => {
       assert.ok(data.retryGuidance);
     });
 
-    it('POST /api/webhooks/payment processes successful payment, marks order PAID and returns receipt (AC-FR-004.1)', async () => {
+    it('POST /api/webhooks/payment processes successful payment, marks order PAID and returns receipt', async () => {
       const txnRef = `txn_success_${Date.now()}`;
       const payload = {
         event: 'payment.succeeded',
@@ -393,7 +393,7 @@ describe('Milky Shakes Drinks Custom Order Placement (FR-002)', () => {
       assert.strictEqual(data.payment.status, PAYMENT_STATUS.SUCCESS);
     });
 
-    it('POST /api/webhooks/payment is idempotent: duplicate callbacks do not duplicate payment or corrupt status (AC-FR-004.3)', async () => {
+    it('POST /api/webhooks/payment is idempotent: duplicate callbacks do not duplicate payment or corrupt status', async () => {
       const txnRef = `txn_idempotent_${Date.now()}`;
       const payload = {
         event: 'payment.succeeded',
@@ -476,6 +476,48 @@ describe('Milky Shakes Drinks Custom Order Placement (FR-002)', () => {
       const receiptData = await receiptRes.json();
       assert.strictEqual(receiptData.receipt.orderId, simOrderId);
       assert.strictEqual(receiptData.receipt.receiptNumber, simData.receipt.receiptNumber);
+    });
+
+    it('POST /api/orders/email-receipt validates input requirements', async () => {
+      // 1. Missing body
+      const res1 = await fetch(`${baseUrl}/api/orders/email-receipt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      assert.strictEqual(res1.status, 400);
+
+      // 2. Missing email
+      const res2 = await fetch(`${baseUrl}/api/orders/email-receipt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order: { orderNumber: 'MSD-111111' },
+        }),
+      });
+      assert.strictEqual(res2.status, 400);
+
+      // 3. Valid payload handles gracefully
+      const res3 = await fetch(`${baseUrl}/api/orders/email-receipt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerEmail: 'test.patron@example.com',
+          customerName: 'Patron Tester',
+          order: {
+            orderNumber: 'MSD-111111',
+            items: [{ flavour: 'Chocolate', cost: 40 }],
+            totals: { total: 40, subtotal: 40 },
+          },
+          receipt: {
+            receiptNumber: 'RCP-20261122-111111',
+            paymentMethod: 'Visa',
+          },
+        }),
+      });
+      assert.strictEqual(res3.status, 200);
+      const data3 = await res3.json();
+      assert.ok('success' in data3);
     });
   });
 });

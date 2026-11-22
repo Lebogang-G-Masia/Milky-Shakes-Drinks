@@ -13,9 +13,10 @@
     "start": "node src/server.js"
   },
   "dependencies": {
-    "@milky-shakes/shared": "*",
     "@milky-shakes/database": "*",
+    "@milky-shakes/shared": "*",
     "cors": "^2.8.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "nodemailer": "^10.6.1"
   }
 }

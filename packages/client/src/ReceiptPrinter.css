@@ -1,0 +1,772 @@
+/* Thermal Receipt Printer */
+
+:root {
+  --printer-width: 440px;
+  --printer-radius: 28px;
+  --printer-inset: 16px;
+  --printer-inner-radius: 18px;
+  --printer-cocoa: #2E1A11;
+  --printer-cocoa-deep: #1F110B;
+  --printer-cocoa-light: #44281B;
+  --printer-screen-bg: #150B07;
+  --printer-screen-border: rgba(186, 114, 76, 0.28);
+  --printer-screen-text: #FDF6EC;
+  --printer-screen-muted: #B89E90;
+  --printer-caramel: #BA724C;
+  --printer-paper-bg: #FFFDF9;
+  --printer-paper-ink: #26160F;
+  --printer-paper-muted: #6B5548;
+  --printer-paper-border: rgba(56, 31, 21, 0.12);
+}
+
+/* Outer layout wrapper */
+.receipt-printer-root {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  width: 100%;
+  max-width: var(--printer-width);
+  margin: 0 auto;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Machine casing */
+.receipt-printer-machine {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  border-radius: var(--printer-radius);
+  background: linear-gradient(165deg, var(--printer-cocoa-light) 0%, var(--printer-cocoa) 55%, var(--printer-cocoa-deep) 100%);
+  border: 1.5px solid rgba(232, 217, 197, 0.35);
+  padding: var(--printer-inset) var(--printer-inset) 28px;
+  box-shadow:
+    0 24px 50px -15px rgba(31, 17, 11, 0.45),
+    0 10px 20px -8px rgba(31, 17, 11, 0.25),
+    inset 0 1px 1px rgba(255, 255, 255, 0.15),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+  z-index: 20;
+}
+
+/* Subtle tactile texture */
+.receipt-printer-machine::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 8px 8px;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Dark recessed aperture slot where paper feeds */
+.receipt-printer-aperture {
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  bottom: 10px;
+  height: 8px;
+  border-radius: 4px;
+  background: #0E0604;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.9),
+    0 1px 0 rgba(255, 255, 255, 0.1);
+  z-index: 30;
+}
+
+/* Machine Header */
+.receipt-printer-header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding: 2px 4px;
+}
+
+.printer-brand-logo {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 34px;
+  color: #FFFFFF;
+  line-height: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  user-select: none;
+}
+
+.printer-tactile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(180deg, #44281B 0%, #30190F 100%);
+  border: 1px solid rgba(232, 217, 197, 0.25);
+  color: #FDF6EC;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  cursor: pointer;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.15s ease;
+}
+
+.printer-tactile-btn:hover {
+  background: linear-gradient(180deg, #533223 0%, #3B2014 100%);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.printer-tactile-btn:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Machine Screen */
+.receipt-printer-screen {
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
+  border-radius: var(--printer-inner-radius);
+  background: var(--printer-screen-bg);
+  border: 1px solid var(--printer-screen-border);
+  padding: 16px 18px;
+  color: var(--printer-screen-text);
+  box-shadow:
+    inset 0 2px 10px rgba(0, 0, 0, 0.6),
+    0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Scanline and subtle screen glare */
+.receipt-printer-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.printer-screen-top-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.printer-screen-order-num {
+  font-family: 'Plus Jakarta Sans', monospace;
+  font-size: 13px;
+  font-weight: 800;
+  color: #E2C7B0;
+  letter-spacing: 0.04em;
+}
+
+.printer-screen-total {
+  font-size: 18px;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -0.02em;
+}
+
+/* Status row inside screen */
+.receipt-printer-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(186, 114, 76, 0.25);
+}
+
+.printer-status-icon-wrap {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.printer-spinner {
+  animation: printerSpin 0.9s linear infinite;
+  color: var(--printer-caramel);
+}
+
+@keyframes printerSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.printer-status-check {
+  color: #22C55E;
+  filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.4));
+  animation: printerCheckPop 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes printerCheckPop {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.printer-status-text {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #D6C2B4;
+  line-height: 1.3;
+}
+
+/* Receipt Paper Output Container */
+.receipt-printer-output {
+  position: relative;
+  z-index: 10;
+  margin-top: -14px;
+  width: calc(100% - 24px);
+  max-width: 410px;
+  overflow: hidden;
+  padding: 0 4px 40px;
+}
+
+/* Ambient shadow cast at top of paper slot */
+.receipt-output-shadow {
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 14px;
+  background: linear-gradient(180deg, rgba(14, 6, 4, 0.85) 0%, rgba(14, 6, 4, 0) 100%);
+  pointer-events: none;
+  z-index: 25;
+}
+
+/* The Animated Paper Wrapper */
+.receipt-paper-wrapper {
+  position: relative;
+  will-change: transform, opacity;
+}
+
+/* Stepped feed keyframes (authentically replicates 20-step thermal printer feeds) */
+@keyframes receiptSteppedFeed {
+  0%   { transform: translateY(calc(-100% + 4px)); opacity: 1; }
+  7.5% { transform: translateY(-91%); }
+  10.5%{ transform: translateY(-91%); }
+  18%  { transform: translateY(-81%); }
+  21%  { transform: translateY(-81%); }
+  28.5%{ transform: translateY(-70%); }
+  31.5%{ transform: translateY(-70%); }
+  39%  { transform: translateY(-58%); }
+  42%  { transform: translateY(-58%); }
+  49.5%{ transform: translateY(-45%); }
+  52.5%{ transform: translateY(-45%); }
+  60%  { transform: translateY(-32%); }
+  63%  { transform: translateY(-32%); }
+  70.5%{ transform: translateY(-20%); }
+  73.5%{ transform: translateY(-20%); }
+  81%  { transform: translateY(-10%); }
+  84%  { transform: translateY(-10%); }
+  91.5%{ transform: translateY(-3%); }
+  94.5%{ transform: translateY(-3%); }
+  100% { transform: translateY(0%); opacity: 1; }
+}
+
+@keyframes receiptSmoothFeed {
+  0% { transform: translateY(calc(-100% + 4px)); opacity: 1; }
+  100% { transform: translateY(0%); opacity: 1; }
+}
+
+/* Stage-specific classes */
+.receipt-paper-wrapper[data-stage="processing"] {
+  transform: translateY(calc(-100% + 4px));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.receipt-paper-wrapper[data-stage="printing"].is-stepped {
+  animation: receiptSteppedFeed 2.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.receipt-paper-wrapper[data-stage="printing"].is-smooth {
+  animation: receiptSmoothFeed 1.8s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+}
+
+.receipt-paper-wrapper[data-stage="complete"] {
+  transform: translateY(0%);
+  opacity: 1;
+}
+
+/* When reduced motion is preferred */
+@media (prefers-reduced-motion: reduce) {
+  .receipt-paper-wrapper[data-stage="printing"],
+  .receipt-paper-wrapper[data-stage="complete"] {
+    animation: none !important;
+    transform: translateY(0%) !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Physical Receipt Paper Styling */
+.receipt-printer-paper {
+  position: relative;
+  background: var(--printer-paper-bg);
+  color: var(--printer-paper-ink);
+  padding: 28px 24px 34px;
+  font-family: 'Courier New', Courier, 'Lucida Console', Monaco, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  box-shadow:
+    0 18px 45px rgba(46, 26, 17, 0.18),
+    0 4px 12px rgba(46, 26, 17, 0.08);
+  /* The serrated tooth clip-path is injected via inline style */
+}
+
+/* Subtle thermal paper watermark / texture */
+.receipt-printer-paper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(#26160F 0.5px, transparent 0.5px);
+  background-size: 12px 12px;
+  opacity: 0.02;
+  pointer-events: none;
+}
+
+/* Paper Header */
+.paper-header {
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--printer-paper-border);
+  margin-bottom: 12px;
+}
+
+.paper-brand-title {
+  font-family: 'Caveat', cursive;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--printer-cocoa);
+  line-height: 1;
+  margin: 0 0 2px 0;
+}
+
+.paper-tagline {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--printer-paper-muted);
+  margin: 0 0 6px 0;
+}
+
+.paper-store-info {
+  font-size: 10px;
+  color: var(--printer-paper-muted);
+  line-height: 1.35;
+}
+
+/* Metadata section */
+.paper-meta-section {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--printer-paper-border);
+  margin-bottom: 12px;
+  font-size: 11px;
+}
+
+.paper-meta-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.paper-meta-label {
+  color: var(--printer-paper-muted);
+}
+
+.paper-meta-val {
+  font-weight: 700;
+  color: var(--printer-paper-ink);
+}
+
+/* Items list */
+.paper-items-section {
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--printer-paper-border);
+  margin-bottom: 12px;
+}
+
+.paper-items-heading {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--printer-paper-muted);
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.paper-item-row {
+  margin-bottom: 8px;
+}
+
+.paper-item-row:last-child {
+  margin-bottom: 0;
+}
+
+.paper-item-top {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+}
+
+.paper-item-sub {
+  font-size: 10px;
+  color: var(--printer-paper-muted);
+  padding-left: 8px;
+}
+
+/* Totals table */
+.paper-totals-section {
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--printer-paper-border);
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.paper-total-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+}
+
+.paper-total-row.is-discount {
+  color: #15803D;
+}
+
+.paper-grand-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--printer-cocoa);
+  padding-top: 6px;
+  margin-top: 2px;
+  border-top: 1px solid var(--printer-paper-ink);
+}
+
+/* Payment & auth info */
+.paper-payment-section {
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--printer-paper-border);
+  margin-bottom: 14px;
+  font-size: 10.5px;
+  color: var(--printer-paper-muted);
+}
+
+.paper-barcode-wrap {
+  text-align: center;
+  margin: 12px 0 8px;
+}
+
+.paper-barcode-svg {
+  width: 100%;
+  max-width: 240px;
+  height: 38px;
+}
+
+.paper-footer-msg {
+  text-align: center;
+  font-size: 10px;
+  color: var(--printer-paper-muted);
+  line-height: 1.4;
+  margin-top: 8px;
+}
+
+/* Action buttons beneath printer */
+.receipt-printer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+  width: 100%;
+  max-width: 440px;
+  flex-wrap: wrap;
+}
+
+.btn-printer-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 9999px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0.2, 1);
+  border: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.btn-printer-action.is-primary {
+  background: var(--printer-cocoa);
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(46, 26, 17, 0.25);
+}
+
+.btn-printer-action.is-primary:hover {
+  background: var(--printer-cocoa-light);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(46, 26, 17, 0.35);
+}
+
+.btn-printer-action.is-ghost {
+  background: #FFFFFF;
+  color: var(--printer-cocoa);
+  border: 1.5px solid rgba(232, 217, 197, 0.9);
+  box-shadow: 0 2px 8px rgba(46, 26, 17, 0.05);
+}
+
+.btn-printer-action.is-ghost:hover {
+  border-color: var(--printer-caramel);
+  color: var(--printer-caramel);
+  transform: translateY(-1px);
+}
+
+.btn-printer-action.is-email {
+  background: #FFFDF9;
+  color: var(--printer-cocoa);
+  border: 1.5px solid rgba(186, 114, 76, 0.45);
+  box-shadow: 0 2px 8px rgba(46, 26, 17, 0.05);
+}
+
+.btn-printer-action.is-email:hover {
+  border-color: var(--printer-caramel);
+  background: #FFFFFF;
+  color: var(--printer-caramel);
+  transform: translateY(-1px);
+}
+
+/* Email receipt banner & prompt */
+.receipt-email-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 18px;
+  width: 100%;
+  max-width: 440px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.receipt-email-banner.is-success {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.receipt-email-banner.is-error {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.receipt-email-prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  width: 100%;
+  max-width: 440px;
+  box-sizing: border-box;
+}
+
+.receipt-email-input {
+  flex: 1;
+  padding: 10px 16px;
+  font-size: 13px;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(186, 114, 76, 0.4);
+  background: #FFFFFF;
+  color: var(--printer-cocoa);
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.receipt-email-input:focus {
+  border-color: var(--printer-caramel);
+  box-shadow: 0 0 0 3px rgba(186, 114, 76, 0.15);
+}
+
+/* Live Order Status Display on Machine Screen */
+.printer-live-status-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.printer-live-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.printer-live-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--printer-screen-muted);
+}
+
+.printer-live-pill {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.printer-live-pill.status-paid {
+  background: #1E3A8A;
+  color: #BFDBFE;
+}
+
+.printer-live-pill.status-preparing {
+  background: #78350F;
+  color: #FDE68A;
+  animation: pulsePreparing 2s infinite ease-in-out;
+}
+
+.printer-live-pill.status-ready {
+  background: #14532D;
+  color: #BBF7D0;
+  animation: pulseReady 1.5s infinite ease-in-out;
+}
+
+.printer-live-pill.status-collected {
+  background: #312E81;
+  color: #E0E7FF;
+}
+
+@keyframes pulsePreparing {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.03); }
+}
+
+@keyframes pulseReady {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.05); }
+}
+
+.printer-stepper-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-top: 4px;
+}
+
+.stepper-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.stepper-step.is-complete {
+  opacity: 1;
+}
+
+.step-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #523D33;
+  transition: background-color 0.3s ease;
+}
+
+.stepper-step.is-complete .step-dot {
+  background: #10B981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.step-name {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--printer-screen-text);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.stepper-bar {
+  flex: 1;
+  height: 2px;
+  background: #38241B;
+  margin: 0 4px;
+  margin-bottom: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.stepper-bar.is-fill {
+  background: #10B981;
+}
+
+/* Live Paper Receipt Tag */
+.paper-status-tag {
+  font-weight: 800;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.paper-status-tag.status-paid {
+  color: #1E40AF;
+  background: #EFF6FF;
+}
+
+.paper-status-tag.status-preparing {
+  color: #B45309;
+  background: #FEF3C7;
+}
+
+.paper-status-tag.status-ready {
+  color: #15803D;
+  background: #DCFCE7;
+}
+
+.paper-status-tag.status-collected {
+  color: #4338CA;
+  background: #EEF2FF;
+}
+
+/* Print Styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .receipt-printer-paper,
+  .receipt-printer-paper * {
+    visibility: visible;
+  }
+  .receipt-printer-paper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    box-shadow: none;
+    clip-path: none !important;
+  }
+}

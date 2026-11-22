@@ -1,4 +1,4 @@
-// Core Schema Model definitions for Supabase PostgreSQL per schema.md
+// Database schema table definitions and enums
 export const tableNames = {
   P_USER: 'p_user',
   USERS: 'users',
@@ -26,4 +26,12 @@ export const customEnums = {
   ],
   PAYMENT_STATUS: ['PENDING', 'SUCCESS', 'FAILED', 'REFUNDED'],
   FULFILLMENT_MODE: ['PICKUP', 'DELIVERY'],
+  AUDIT_ACTIONS: [
+    'ORDER_CREATED',
+    'PAYMENT_AUTHORIZED',
+    'PAYMENT_FAILED',
+    'STATUS_CHANGED',
+    'REPORT_ACCESSED',
+    'REPORT_EXPORTED',
+  ],
 };

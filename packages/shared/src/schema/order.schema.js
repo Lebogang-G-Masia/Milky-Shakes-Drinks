@@ -134,7 +134,7 @@ export function formatCurrency(amount) {
 }
 
 /**
- * Generates an immutable, traceable receipt number (AC-FR-004.1)
+ * Generates a traceable receipt number.
  * Format: RCP-YYYYMMDD-XXXX
  */
 export function generateReceiptNumber(orderNumber) {
@@ -144,7 +144,7 @@ export function generateReceiptNumber(orderNumber) {
 }
 
 /**
- * Generates an HMAC-SHA256 signature for webhook payload verification (AC-FR-004.1 / AC-FR-004.3)
+ * Generates an HMAC-SHA256 signature for webhook payload verification.
  */
 export async function generateHmacSignature(payload, secret) {
   const encoder = new TextEncoder();
