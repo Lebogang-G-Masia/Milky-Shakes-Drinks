@@ -27,7 +27,7 @@ export default function FaqPage({ currentUser, onSignOut }) {
   const allFaqs = [
     {
       id: 'different',
-      question: 'What makes your ice cream and milkshakes different?',
+      question: 'What makes your milkshake different?',
       answer:
         'We use 100% pasture-raised whole milk, fresh farm cream, and genuine tropical fruits and berries. Every batch is handcrafted in small quantities with zero artificial flavours, chemical thickeners, or preservatives.',
     },

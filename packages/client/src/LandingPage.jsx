@@ -68,7 +68,7 @@ export const FAQ_ITEMS = [
   {
     id: "different",
     emoji: "🍨",
-    question: "What makes your ice cream different?",
+    question: "What makes your milkshake different?",
     answer:
       "We use real tropical fruits, fresh dairy, and zero artificial flavours. Every batch is handcrafted in small quantities to maintain quality.",
   },
@@ -82,7 +82,7 @@ export const FAQ_ITEMS = [
   {
     id: "vegan",
     emoji: "🌱",
-    question: "Is your ice cream vegan or dairy-free?",
+    question: "Is your milkshake vegan or dairy-free?",
     answer:
       "We offer dedicated plant-based creations! Crafted with velvety organic oat milk and rich coconut cream, paired with real fruits and dairy-free single-origin dark chocolate.",
   },
@@ -779,7 +779,7 @@ export default function LandingPage({
                   <h2 className="faq-title">FAQ's</h2>
                   <p className="faq-subtitle">
                     We've answered the most common questions to make your
-                    experience as smooth as our ice cream.
+                    experience as smooth as our milkshake.
                   </p>
                 </div>
 
