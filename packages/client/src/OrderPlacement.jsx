@@ -800,8 +800,8 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
     return (
       <div className="box-builder-canvas">
         {/* Top Caramel Wave */}
-        <div className="hero-wave-container" aria-hidden="true" style={{ height: '180px' }}>
-          <svg viewBox="0 0 1440 180" preserveAspectRatio="none" className="hero-wave-svg">
+        <div className="box-wave-container" aria-hidden="true">
+          <svg viewBox="0 0 1440 180" preserveAspectRatio="none" className="box-wave-svg">
             <path
               style={{ fill: '#CC7452' }}
               d="M0,0 L1440,0 L1440,135 C1240,175 1020,110 720,155 C420,195 200,120 0,155 Z"
@@ -809,9 +809,9 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
           </svg>
         </div>
 
-        <header className="landing-header">
+        <header className="box-nav-header">
           <div
-            className="landing-brand-logo"
+            className="box-nav-logo"
             onClick={onBackToLanding}
             role="button"
             tabIndex={0}
@@ -820,13 +820,13 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
             milky
           </div>
 
-          <nav className="nav-pill-menu" aria-label="Main Navigation">
+          <nav className="box-nav-pill-menu" aria-label="Main Navigation">
             {['Packs', 'Flavours', 'Philosophy', 'FAQ'].map((tab) => {
               const isActive = tab === 'Packs';
               return (
                 <button
                   key={tab}
-                  className={`nav-pill-item ${isActive ? 'active' : ''}`}
+                  className={`box-nav-pill-item ${isActive ? 'active' : ''}`}
                   onClick={() => {
                     if (tab === 'Packs') {
                       handleResetBox();
@@ -844,11 +844,11 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
             })}
           </nav>
 
-          <div className="nav-right-actions">
+          <div className="box-nav-actions">
             {onSignOut && (
               <button
                 type="button"
-                className="btn-ghost-pill signout-btn"
+                className="box-btn-ghost-pill signout-btn"
                 onClick={onSignOut}
                 title="Sign Out"
               >
@@ -952,11 +952,11 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
   return (
     <div className="box-builder-canvas">
       {/* Top Ambient Wave Layer (Seamless with Landing Page) */}
-      <div className="hero-wave-container" aria-hidden="true" style={{ height: '180px' }}>
+      <div className="box-wave-container" aria-hidden="true">
         <svg
           viewBox="0 0 1440 180"
           preserveAspectRatio="none"
-          className="hero-wave-svg"
+          className="box-wave-svg"
         >
           <path
             style={{ fill: '#CC7452' }}
@@ -966,10 +966,10 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
       </div>
 
       {/* Top Header / Navigation Bar (Coherent with Landing Page) */}
-      <header className="landing-header">
+      <header className="box-nav-header">
         {/* Brand Logo */}
         <div
-          className="landing-brand-logo"
+          className="box-nav-logo"
           onClick={onBackToLanding}
           role="button"
           tabIndex={0}
@@ -979,13 +979,13 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         </div>
 
         {/* Centered Floating Pill Navigation */}
-        <nav className="nav-pill-menu" aria-label="Main Navigation">
+        <nav className="box-nav-pill-menu" aria-label="Main Navigation">
           {['Packs', 'Flavours', 'Philosophy', 'FAQ'].map((tab) => {
             const isActive = tab === 'Packs';
             return (
               <button
                 key={tab}
-                className={`nav-pill-item ${isActive ? 'active' : ''}`}
+                className={`box-nav-pill-item ${isActive ? 'active' : ''}`}
                 onClick={() => {
                   if (tab === 'Packs') {
                     setCurrentStage('builder');
@@ -1002,10 +1002,10 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         </nav>
 
         {/* Right Action Icons / Buttons */}
-        <div className="nav-right-actions">
+        <div className="box-nav-actions">
           <button
             type="button"
-            className="btn-ghost-pill cart-btn"
+            className="box-btn-ghost-pill cart-btn"
             onClick={() => setCurrentStage(currentStage === 'builder' ? 'review' : 'builder')}
             aria-label="View shopping cart"
           >
@@ -1030,7 +1030,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
           {onSignOut && (
             <button
               type="button"
-              className="btn-ghost-pill signout-btn"
+              className="box-btn-ghost-pill signout-btn"
               onClick={onSignOut}
               title="Sign Out"
             >
