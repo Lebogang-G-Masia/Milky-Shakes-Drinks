@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import {
   calculateOrderTotals,
@@ -160,8 +160,22 @@ function getItemPrice(item) {
 
 // Map flavour name to visual styling & realistic hero image
 function getFlavourVisual(name = '') {
-  const lower = name.toLowerCase();
-  if (lower.includes('strawberry') || lower.includes('jordgubb') || lower.includes('berry')) {
+  const lower = (name || '').toLowerCase();
+
+  // Mint / Mint Chocolate Chip (check first so mint chocolate doesn't get caught by chocolate)
+  if (lower.includes('mint') || lower.includes('choklad') || lower.includes('peppermint')) {
+    return {
+      liquid: '#C6EBDD',
+      swirl: '#276E5B',
+      border: '#276E5B',
+      aura: 'rgba(160, 230, 205, 0.45)',
+      image: '/images/mint.png',
+      alt: 'Mint Chocolate Chip Artisan Milkshake',
+    };
+  }
+
+  // Strawberry
+  if (lower.includes('strawberry') || lower.includes('jordgubb') || lower.includes('strawbar') || lower.includes('berry')) {
     return {
       liquid: '#F5CCD3',
       swirl: '#BA2E44',
@@ -171,17 +185,69 @@ function getFlavourVisual(name = '') {
       alt: 'Wild Strawberry Artisan Milkshake',
     };
   }
-  if (lower.includes('mint') || lower.includes('choklad') || lower.includes('peppermint')) {
+
+  // Banana
+  if (lower.includes('banana')) {
     return {
-      liquid: '#C6EBDD',
-      swirl: '#276E5B',
-      border: '#276E5B',
-      aura: 'rgba(160, 230, 205, 0.45)',
-      image: '/images/mint.png',
-      alt: 'Mint Dark Chocolate Artisan Milkshake',
+      liquid: '#FFF1A8',
+      swirl: '#D4A41B',
+      border: '#D4A41B',
+      aura: 'rgba(255, 232, 130, 0.50)',
+      image: '/images/banana.png',
+      alt: 'Fresh Banana Artisan Milkshake',
     };
   }
-  if (lower.includes('cookie') || lower.includes('kram') || lower.includes('cream')) {
+
+  // Bar One
+  if (lower.includes('bar one') || lower.includes('bar_one') || lower.includes('bar-one') || lower.includes('barone')) {
+    return {
+      liquid: '#5E3821',
+      swirl: '#381C0E',
+      border: '#381C0E',
+      aura: 'rgba(180, 110, 60, 0.45)',
+      image: '/images/bar_one.png',
+      alt: 'Bar One Artisan Milkshake',
+    };
+  }
+
+  // Chocolate
+  if (lower.includes('chocolate') || lower.includes('choc') || lower.includes('cocoa') || lower.includes('belgian')) {
+    return {
+      liquid: '#4B2810',
+      swirl: '#2C1406',
+      border: '#2C1406',
+      aura: 'rgba(125, 75, 45, 0.45)',
+      image: '/images/chocolate.png',
+      alt: 'Belgian Chocolate Artisan Milkshake',
+    };
+  }
+
+  // Coffee
+  if (lower.includes('coffee') || lower.includes('espresso') || lower.includes('mocha') || lower.includes('latte') || lower.includes('cappuccino')) {
+    return {
+      liquid: '#A47D55',
+      swirl: '#5C3E28',
+      border: '#5C3E28',
+      aura: 'rgba(180, 140, 100, 0.45)',
+      image: '/images/Coffee.png',
+      alt: 'Artisan Roast Coffee Milkshake',
+    };
+  }
+
+  // Vanilla
+  if (lower.includes('vanilla') || lower.includes('vanilj')) {
+    return {
+      liquid: '#FFF8EC',
+      swirl: '#E4CB9E',
+      border: '#C5A775',
+      aura: 'rgba(255, 245, 220, 0.55)',
+      image: '/images/vanilla.png',
+      alt: 'Madagascan Vanilla Artisan Milkshake',
+    };
+  }
+
+  // Cookies & Cream / Oreo
+  if (lower.includes('cookie') || lower.includes('kram') || lower.includes('cream') || lower.includes('oreo')) {
     return {
       liquid: '#E6D3BE',
       swirl: '#5A3828',
@@ -191,6 +257,7 @@ function getFlavourVisual(name = '') {
       alt: 'Cookies & Cream Artisan Milkshake',
     };
   }
+
   return {
     liquid: '#EAD7C2',
     swirl: '#BA724C',
@@ -279,7 +346,21 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         const { data: fData, error: fErr } = await supabase.from('flavours').select('*');
         if (fErr) throw { table: 'flavours', ...fErr };
         if (!fData || fData.length === 0) throw { table: 'flavours', message: 'No flavour rows found.' };
-        setFlavours(fData);
+
+        // Ensure Mint Chocolate Chip is included if not present in flavours rows
+        const hasMint = fData.some((f) => (f.name || '').toLowerCase().includes('mint'));
+        const catalogFlavours = hasMint
+          ? fData
+          : [
+              ...fData,
+              {
+                id: '24650caa-8f1d-4f5c-86d8-93e9f158b668',
+                name: 'Mint Chocolate Chip',
+                base_price: 40,
+                is_active: true,
+              },
+            ];
+        setFlavours(catalogFlavours);
 
         const { data: cData, error: cErr } = await supabase.from('consistencies').select('*');
         if (cErr) throw { table: 'consistencies', ...cErr };
@@ -433,42 +514,8 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
     setTilt({ rotateX: 0, rotateY: 0, glareX: 0, glareY: 0 });
   };
 
-  // Interactive Ingredient Dropper Particles State & Trigger
-  const [particles, setParticles] = useState([]);
-  const [showRipple, setShowRipple] = useState(false);
-
-  function triggerDropperParticles(toppingName = '') {
-    const lower = toppingName.toLowerCase();
-    let typeClass = 'type-caramel';
-    if (lower.includes('cookie') || lower.includes('oreo')) typeClass = 'type-cookie';
-    else if (lower.includes('choc') || lower.includes('flake') || lower.includes('nibs') || lower.includes('brownie')) typeClass = 'type-choc';
-    else if (lower.includes('berry') || lower.includes('straw') || lower.includes('sprinkle')) typeClass = 'type-berry';
-    else if (lower.includes('marsh') || lower.includes('cream') || lower.includes('whip')) typeClass = 'type-cream';
-
-    const count = 12;
-    const newParticles = Array.from({ length: count }).map((_, i) => ({
-      id: `${Date.now()}_${i}_${Math.random()}`,
-      left: `${46 + (Math.random() * 20 - 10)}%`,
-      size: `${6 + Math.floor(Math.random() * 6)}px`,
-      delay: `${(i * 0.04).toFixed(2)}s`,
-      typeClass,
-    }));
-
-    setParticles(newParticles);
-    setShowRipple(true);
-
-    setTimeout(() => {
-      setShowRipple(false);
-    }, 700);
-
-    setTimeout(() => {
-      setParticles([]);
-    }, 1200);
-  }
-
   function handleSelectTopping(toppingItem) {
     updateActiveDrink('toppingId', toppingItem.id);
-    triggerDropperParticles(getItemName(toppingItem));
   }
 
   // Update field on active drink
@@ -650,16 +697,40 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
     return calculateOrderTotals(configuredDrinks, effectiveDiscount, vatRate, deliveryFee);
   }, [configuredDrinks, effectiveDiscount, vatRate, deliveryFee]);
 
+  // Helper to format/compute pickup time string
+  const getComputedPickupTime = useCallback(() => {
+    const now = new Date();
+    if (pickupTimeSlot === 'ASAP') {
+      return new Date(now.getTime() + 20 * 60 * 1000).toISOString();
+    }
+    if (pickupTimeSlot === '30_MINS') {
+      return new Date(now.getTime() + 30 * 60 * 1000).toISOString();
+    }
+    if (pickupTimeSlot === '45_MINS') {
+      return new Date(now.getTime() + 45 * 60 * 1000).toISOString();
+    }
+    if (pickupTimeSlot === '60_MINS') {
+      return new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+    }
+    if (pickupTimeSlot === 'CUSTOM' && customPickupTime) {
+      const [h, m] = customPickupTime.split(':');
+      const customDate = new Date();
+      customDate.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
+      return customDate.toISOString();
+    }
+    return new Date(now.getTime() + 30 * 60 * 1000).toISOString();
+  }, [pickupTimeSlot, customPickupTime]);
+
   // Validate fulfillment
   const isFulfillmentValid = useMemo(() => {
     if (fulfillmentMode === 'PICKUP') {
-      return Boolean(pickupRestaurantId);
+      return Boolean(pickupRestaurantId && (pickupTimeSlot !== 'CUSTOM' || customPickupTime));
     }
     if (fulfillmentMode === 'DELIVERY') {
       return Boolean(deliveryStreet.trim() && deliveryPostalCode.trim() && deliveryPhone.trim());
     }
     return false;
-  }, [fulfillmentMode, pickupRestaurantId, deliveryStreet, deliveryPostalCode, deliveryPhone]);
+  }, [fulfillmentMode, pickupRestaurantId, pickupTimeSlot, customPickupTime, deliveryStreet, deliveryPostalCode, deliveryPhone]);
 
   // Handle Order Placement to Supabase
   async function handleProceedToPayment() {
@@ -707,36 +778,54 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
 
       const uniqueOrderNumber = `MSD-${Date.now().toString().slice(-6)}`;
       const selectedRestaurant = restaurants.find((r) => r.id === pickupRestaurantId);
+      const computedPickupTime = fulfillmentMode === 'PICKUP' ? getComputedPickupTime() : null;
+
+      // Ensure valid restaurant ID (required NOT NULL by orders table)
+      const validRestaurantId =
+        (pickupRestaurantId && isUuid(pickupRestaurantId) ? pickupRestaurantId : null) ||
+        (restaurants.length > 0 ? restaurants[0].id : '243141d7-add7-4e1b-8717-3151d4adb3ee');
+
+      // Ensure pickup_time is always a valid ISO timestamp (required NOT NULL by orders table)
+      const validPickupTime = computedPickupTime || new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
       const fulfillmentData = {
         mode: fulfillmentMode,
-        restaurantId: fulfillmentMode === 'PICKUP' ? pickupRestaurantId : null,
+        restaurantId: validRestaurantId,
         restaurantName: selectedRestaurant?.name || 'Milky Shakes Store',
         restaurantAddress: selectedRestaurant?.address || '',
         pickupTimeSlot: fulfillmentMode === 'PICKUP' ? pickupTimeSlot : null,
+        pickupTime: validPickupTime,
         streetAddress: fulfillmentMode === 'DELIVERY' ? deliveryStreet.trim() : null,
         postalCode: fulfillmentMode === 'DELIVERY' ? deliveryPostalCode.trim() : null,
         recipientPhone: fulfillmentMode === 'DELIVERY' ? deliveryPhone.trim() : null,
         deliveryInstructions: fulfillmentMode === 'DELIVERY' ? deliveryInstructions.trim() : null,
       };
 
+      const orderPayload = {
+        order_number: uniqueOrderNumber,
+        patron_id: patronUuid,
+        status: 'PENDING_PAYMENT',
+        fulfillment_mode: fulfillmentMode,
+        restaurant_id: validRestaurantId,
+        pickup_time: validPickupTime,
+        number_of_drinks: configuredDrinks.length,
+        items_count: configuredDrinks.length,
+        subtotal_amount: orderTotals.subtotal,
+        subtotal: orderTotals.subtotal,
+        discount_amount: orderTotals.discountAmount,
+        vat_rate: vatRate,
+        vat_amount: orderTotals.vat,
+        total_amount: orderTotals.total,
+        delivery_fee: fulfillmentMode === 'DELIVERY' ? orderTotals.deliveryFee : 0,
+        delivery_address: fulfillmentMode === 'DELIVERY' ? deliveryStreet.trim() : null,
+        delivery_postal_code: fulfillmentMode === 'DELIVERY' ? deliveryPostalCode.trim() : null,
+        recipient_phone: fulfillmentMode === 'DELIVERY' ? deliveryPhone.trim() : null,
+        delivery_instructions: fulfillmentMode === 'DELIVERY' ? (deliveryInstructions.trim() || null) : null,
+      };
+
       const { data: insertedOrder, error: orderErr } = await supabase
         .from('orders')
-        .insert([
-          {
-            order_number: uniqueOrderNumber,
-            patron_id: patronUuid,
-            status: 'PENDING_PAYMENT',
-            fulfillment_mode: fulfillmentMode,
-            restaurant_id: fulfillmentMode === 'PICKUP' ? pickupRestaurantId : null,
-            subtotal: orderTotals.subtotal,
-            discount_amount: orderTotals.discountAmount,
-            vat_amount: orderTotals.vat,
-            delivery_fee: orderTotals.deliveryFee,
-            total_amount: orderTotals.total,
-            items_count: configuredDrinks.length,
-          },
-        ])
+        .insert([orderPayload])
         .select()
         .single();
 
@@ -744,17 +833,41 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
 
       const orderId = insertedOrder.id;
 
-      // Insert line items (only configured drinks)
-      const lineItems = configuredDrinks.map((drink, idx) => ({
-        order_id: orderId,
-        item_number: idx + 1,
-        flavour_id: isUuid(drink.flavourId) ? drink.flavourId : null,
-        consistency_id: isUuid(drink.consistencyId) ? drink.consistencyId : null,
-        topping_id: isUuid(drink.toppingId) ? drink.toppingId : null,
-        unit_price: drink.cost,
-        quantity: 1,
-        total_price: drink.cost,
-      }));
+      // Insert line items matching exact schema of order_items
+      const lineItems = configuredDrinks.map((drink, idx) => {
+        let resolvedFlavour = flavours.find((x) => String(x.id) === String(drink.flavourId));
+        if (!resolvedFlavour && drink.flavourId) {
+          const lower = String(drink.flavourId).toLowerCase();
+          resolvedFlavour = flavours.find((x) => (x.name || '').toLowerCase().includes(lower));
+        }
+        if (!resolvedFlavour) resolvedFlavour = flavours[0];
+
+        let resolvedConsistency = consistencies.find((x) => String(x.id) === String(drink.consistencyId));
+        if (!resolvedConsistency) resolvedConsistency = consistencies[0];
+
+        let resolvedTopping = toppings.find((x) => String(x.id) === String(drink.toppingId));
+        if (!resolvedTopping) resolvedTopping = toppings[0];
+
+        const fPrice = getItemPrice(resolvedFlavour);
+        const cPrice = getItemPrice(resolvedConsistency);
+        const tPrice = getItemPrice(resolvedTopping);
+        const itemTotal = Number(drink.cost) || Math.round((fPrice + cPrice + tPrice) * 100) / 100;
+
+        return {
+          order_id: orderId,
+          drink_number: idx + 1,
+          flavour_id: resolvedFlavour?.id || null,
+          flavour_name_snapshot: getItemName(resolvedFlavour) || 'Flavour',
+          flavour_price_snapshot: fPrice,
+          consistency_id: resolvedConsistency?.id || null,
+          consistency_name_snapshot: getItemName(resolvedConsistency) || 'Standard',
+          consistency_price_snapshot: cPrice,
+          topping_id: resolvedTopping?.id || null,
+          topping_name_snapshot: getItemName(resolvedTopping) || 'Topping',
+          topping_price_snapshot: tPrice,
+          item_total: itemTotal,
+        };
+      });
 
       const { error: itemsErr } = await supabase.from('order_items').insert(lineItems);
       if (itemsErr) throw itemsErr;
@@ -1226,22 +1339,6 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                   }}
                 />
 
-                {/* Interactive Dropper Particles Layer */}
-                <div className="ingredient-dropper-layer" aria-hidden="true">
-                  {particles.map((p) => (
-                    <span
-                      key={p.id}
-                      className={`dropper-particle ${p.typeClass}`}
-                      style={{
-                        left: p.left,
-                        width: p.size,
-                        height: p.size,
-                        animationDelay: p.delay,
-                      }}
-                    />
-                  ))}
-                  {showRipple && <div className="dropper-landing-ripple" />}
-                </div>
 
                 {/* 3D Tilting Glass Body */}
                 <div
@@ -1396,6 +1493,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                 <div className="deck-flavour-grid">
                   {flavours.map((item) => {
                     const isSelected = String(activeDrink.flavourId) === String(item.id);
+                    const visual = getFlavourVisual(getItemName(item));
                     return (
                       <button
                         key={item.id}
@@ -1403,8 +1501,13 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                         className={`btn-choice-card ${isSelected ? 'is-selected' : ''}`}
                         onClick={() => updateActiveDrink('flavourId', item.id)}
                       >
-                        <span className="choice-card-title">{getItemName(item)}</span>
-                        <span className="choice-card-meta">{formatCurrency(getItemPrice(item))}</span>
+                        <div className="choice-card-thumb-wrap">
+                          <img src={visual.image} alt={visual.alt} className="choice-card-thumb" />
+                        </div>
+                        <div className="choice-card-content">
+                          <span className="choice-card-title">{getItemName(item)}</span>
+                          <span className="choice-card-meta">{formatCurrency(getItemPrice(item))}</span>
+                        </div>
                       </button>
                     );
                   })}
@@ -1589,7 +1692,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                 </button>
               </div>
 
-              {/* Pickup Location Selector */}
+              {/* Pickup Location & Time Selector */}
               {fulfillmentMode === 'PICKUP' && (
                 <div className="fulfillment-field-box">
                   <label htmlFor="store-select" className="fulfillment-field-label">
@@ -1607,6 +1710,38 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                       </option>
                     ))}
                   </select>
+
+                  <label htmlFor="pickup-time-select" className="fulfillment-field-label" style={{ marginTop: '14px' }}>
+                    Estimated Collection Time
+                  </label>
+                  <select
+                    id="pickup-time-select"
+                    className="fulfillment-select"
+                    value={pickupTimeSlot}
+                    onChange={(e) => setPickupTimeSlot(e.target.value)}
+                  >
+                    <option value="ASAP">Ready in 15–20 minutes (ASAP)</option>
+                    <option value="30_MINS">In 30 minutes</option>
+                    <option value="45_MINS">In 45 minutes</option>
+                    <option value="60_MINS">In 1 hour</option>
+                    <option value="CUSTOM">Specific pickup time...</option>
+                  </select>
+
+                  {pickupTimeSlot === 'CUSTOM' && (
+                    <div style={{ marginTop: '10px' }}>
+                      <label htmlFor="custom-pickup-time" className="fulfillment-field-label">
+                        Enter Preferred Collection Time
+                      </label>
+                      <input
+                        id="custom-pickup-time"
+                        type="time"
+                        className="fulfillment-text-input"
+                        value={customPickupTime}
+                        onChange={(e) => setCustomPickupTime(e.target.value)}
+                        required
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
