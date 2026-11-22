@@ -1,15 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Login from "./Login";
 import SignUp from "./SignUp";
+import { useRouter } from "./router";
+import { loadOrderDraft } from "./orderDraft";
 import "./Auth.css";
 
 export default function AuthPage({
   onAuthSuccess,
   onBackToLanding,
 }) {
-  const [mode, setMode] = useState("login"); // "login" | "signup"
+  const { navigate, params } = useRouter();
+  const [mode, setMode] = useState(() => (params?.mode === "signup" ? "signup" : "login")); // "login" | "signup"
   const [signupStep, setSignupStep] = useState(1); // 1 | 2
   const isLogin = mode === "login";
+
+  const orderDraft = useMemo(() => loadOrderDraft(), []);
+  const filledCount = orderDraft?.drinks?.filter((d) => d && d.flavourId).length || 0;
+
+  const handleBack = () => {
+    if (params?.returnUrl) {
+      navigate(params.returnUrl);
+    } else if (onBackToLanding) {
+      onBackToLanding();
+    } else {
+      navigate("/");
+    }
+  };
+
+  const handleSuccess = (user) => {
+    if (onAuthSuccess) {
+      onAuthSuccess(user, params?.returnUrl);
+    }
+  };
 
   return (
     <div className="auth-page-canvas">
@@ -27,25 +49,48 @@ export default function AuthPage({
         </svg>
       </div>
 
-      {/* Back to Home Navigation Button */}
-      {onBackToLanding && (
-        <div className="auth-back-nav">
-          <button
-            type="button"
-            className="btn-auth-back"
-            onClick={onBackToLanding}
-          >
-            &larr; Back to Milky Shakes
-          </button>
-        </div>
-      )}
+      {/* Back Navigation Button */}
+      <div className="auth-back-nav">
+        <button
+          type="button"
+          className="btn-auth-back"
+          onClick={handleBack}
+        >
+          &larr; {params?.returnUrl ? "Back to Previous Page" : "Back to Milky Shakes"}
+        </button>
+      </div>
 
       {/* Centered Floating Pedestal Card */}
       <main className="auth-pedestal-card" aria-labelledby="auth-main-title">
         {/* Flowing Cursive Brand Wordmark */}
-        <div className="auth-brand-wordmark" aria-label="Milky Shakes Drinks">
+        <div
+          className="auth-brand-wordmark"
+          onClick={() => navigate("/")}
+          role="button"
+          tabIndex={0}
+          style={{ cursor: "pointer" }}
+          aria-label="Milky Shakes Drinks"
+        >
           milky
         </div>
+
+        {/* Order Saved Banner */}
+        {filledCount > 0 && (
+          <div
+            style={{
+              background: "#E8F8F0",
+              border: "1.5px solid #BBE8D0",
+              borderRadius: "14px",
+              padding: "10px 16px",
+              marginBottom: "18px",
+              fontSize: "13px",
+              fontWeight: "700",
+              color: "#175234",
+            }}
+          >
+            Your {orderDraft.packSize}-Pack Box is saved ({filledCount} Shakes)! Sign in to finalize checkout.
+          </div>
+        )}
 
         {/* Segmented Glass Pill Switcher */}
         <div className="auth-segmented-switcher" role="tablist" aria-label="Sign in or register">
@@ -103,12 +148,12 @@ export default function AuthPage({
               setMode("signup");
               setSignupStep(1);
             }}
-            onSuccess={(user) => onAuthSuccess && onAuthSuccess(user)}
+            onSuccess={handleSuccess}
           />
         ) : (
           <SignUp
             onSwitch={() => setMode("login")}
-            onSuccess={(user) => onAuthSuccess && onAuthSuccess(user)}
+            onSuccess={handleSuccess}
             onStepChange={(step) => setSignupStep(step)}
           />
         )}

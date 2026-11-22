@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "./router";
+import { getDraftFilledCount } from "./orderDraft";
 import "./LandingPage.css";
 
 export const FLAVORS = [
@@ -96,9 +98,19 @@ export default function LandingPage({
   onStartOrder = () => {},
   onOpenAuth = () => {},
   cartCount = 0,
+  currentUser = null,
 }) {
+  const { navigate } = useRouter();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState("Packs");
+  const [activeTab, setActiveTab] = useState("Home");
+  const [liveCartCount, setLiveCartCount] = useState(() => getDraftFilledCount());
+
+  useEffect(() => {
+    const handleUpdate = () => setLiveCartCount(getDraftFilledCount());
+    window.addEventListener("milky_draft_updated", handleUpdate);
+    return () => window.removeEventListener("milky_draft_updated", handleUpdate);
+  }, []);
+
   // animatingState: null | { direction: 'next' | 'prev', outgoingIdx: number, incomingIdx: number }
   const [animatingState, setAnimatingState] = useState(null);
   const [openFaqId, setOpenFaqId] = useState("different");
@@ -204,27 +216,27 @@ export default function LandingPage({
 
           {/* Centered Floating Pill Navigation */}
           <nav className="nav-pill-menu" aria-label="Main Navigation">
-            {["Packs", "Flavours", "Philosophy", "FAQ"].map((tab) => {
-              const isActive = activeTab === tab;
+            {[
+              { label: "Home", path: "/" },
+              { label: "Orders", path: "/orders" },
+              { label: "Flavours", path: "/flavours" },
+              { label: "Philosophy", path: "/philosophy" },
+            ].map((tab) => {
+              const isActive = tab.label === "Home";
               return (
                 <button
-                  key={tab}
+                  key={tab.label}
                   className={`nav-pill-item ${isActive ? "active" : ""}`}
                   onClick={() => {
-                    setActiveTab(tab);
-                    if (tab === "Packs") {
-                      onStartOrder();
-                    } else if (tab === "Flavours") {
-                      document.getElementById("flavours")?.scrollIntoView({ behavior: "smooth" });
-                    } else if (tab === "Philosophy") {
-                      document.getElementById("philosophy")?.scrollIntoView({ behavior: "smooth" });
-                    } else if (tab === "FAQ") {
-                      document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" });
+                    if (tab.label === "Home") {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    } else {
+                      navigate(tab.path);
                     }
                   }}
                   type="button"
                 >
-                  {tab}
+                  {tab.label}
                 </button>
               );
             })}
@@ -234,7 +246,7 @@ export default function LandingPage({
           <div className="nav-right-actions">
             <button
               className="btn-ghost-pill cart-btn"
-              onClick={onStartOrder}
+              onClick={() => navigate("/orders")}
               type="button"
               aria-label="View shopping cart"
             >
@@ -252,30 +264,28 @@ export default function LandingPage({
                 <line x1="3" y1="6" x2="21" y2="6" />
                 <path d="M16 10a4 4 0 0 1-8 0" />
               </svg>
-              <span>Cart ({cartCount})</span>
+              <span>Cart ({liveCartCount})</span>
             </button>
 
-            <button
-              className="btn-ghost-circle profile-btn"
-              onClick={onOpenAuth}
-              type="button"
-              title="Account / Sign In"
-              aria-label="Account / Sign In"
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            {currentUser ? (
+              <button
+                className="btn-ghost-pill profile-btn"
+                onClick={onOpenAuth}
+                type="button"
+                title={`${currentUser.first_name || "Account"} (${currentUser.role || "PATRON"})`}
               >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </button>
+                <span>{currentUser.first_name || "Account"}</span>
+              </button>
+            ) : (
+              <button
+                className="btn-ghost-pill profile-btn"
+                onClick={() => navigate("/auth")}
+                type="button"
+                title="Account / Sign In"
+              >
+                <span>Sign In</span>
+              </button>
+            )}
           </div>
         </header>
 
@@ -297,7 +307,7 @@ export default function LandingPage({
             <div className="hero-cta-buttons">
               <button
                 className="btn-cta-primary"
-                onClick={onStartOrder}
+                onClick={() => navigate("/orders")}
                 type="button"
               >
                 Order Now
@@ -305,14 +315,7 @@ export default function LandingPage({
 
               <button
                 className="btn-cta-secondary"
-                onClick={() => {
-                  const element = document.getElementById("how-it-works");
-                  if (element) {
-                    element.scrollIntoView({ behavior: "smooth" });
-                  } else {
-                    onStartOrder();
-                  }
-                }}
+                onClick={() => navigate("/philosophy")}
                 type="button"
               >
                 Learn More

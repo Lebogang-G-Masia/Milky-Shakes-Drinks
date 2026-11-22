@@ -8,6 +8,9 @@ import {
   MIN_DRINKS_PER_ORDER,
   MAX_DRINKS_PER_ORDER,
 } from '@milky-shakes/shared';
+import { useRouter } from './router';
+import { saveOrderDraft, loadOrderDraft, clearOrderDraft } from './orderDraft';
+import AuthModal from './AuthModal';
 import './OrderPlacement.css';
 
 // Clean SVG Icons (NO EMOJIS)
@@ -198,7 +201,12 @@ function getFlavourVisual(name = '') {
   };
 }
 
-export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding }) {
+export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding, onAuthSuccess }) {
+  const { navigate } = useRouter();
+
+  // Load existing draft if present
+  const initialDraft = useMemo(() => loadOrderDraft(), []);
+
   // Database catalog state
   const [flavours, setFlavours] = useState([]);
   const [consistencies, setConsistencies] = useState([]);
@@ -210,31 +218,41 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
   const [databaseError, setDatabaseError] = useState(null);
 
   // Box Builder state
-  const [packSize, setPackSize] = useState(4); // 2 | 4 | 6
-  const [drinks, setDrinks] = useState([
-    { id: 1, flavourId: '', consistencyId: '', toppingId: '', cost: 0 },
-    { id: 2, flavourId: '', consistencyId: '', toppingId: '', cost: 0 },
-    { id: 3, flavourId: '', consistencyId: '', toppingId: '', cost: 0 },
-    { id: 4, flavourId: '', consistencyId: '', toppingId: '', cost: 0 },
-  ]);
-  const [activeSlotIndex, setActiveSlotIndex] = useState(0);
+  const [packSize, setPackSize] = useState(() => initialDraft?.packSize || 4); // 2 | 4 | 6
+  const [drinks, setDrinks] = useState(() => {
+    if (initialDraft?.drinks && Array.isArray(initialDraft.drinks) && initialDraft.drinks.length > 0) {
+      return initialDraft.drinks;
+    }
+    return [
+      { id: 1, flavourId: '', consistencyId: '', toppingId: '', cost: 0 },
+      { id: 2, flavourId: '', consistencyId: '', toppingId: '', cost: 0 },
+      { id: 3, flavourId: '', consistencyId: '', toppingId: '', cost: 0 },
+      { id: 4, flavourId: '', consistencyId: '', toppingId: '', cost: 0 },
+    ];
+  });
+  const [activeSlotIndex, setActiveSlotIndex] = useState(() => initialDraft?.activeSlotIndex || 0);
 
   // Stage toggle: 'builder' | 'review'
-  const [currentStage, setCurrentStage] = useState('builder');
+  const [currentStage, setCurrentStage] = useState(() => initialDraft?.currentStage || 'builder');
 
   // Fulfillment & Discount state
-  const [fulfillmentMode, setFulfillmentMode] = useState('PICKUP'); // 'PICKUP' | 'DELIVERY'
-  const [pickupRestaurantId, setPickupRestaurantId] = useState('');
-  const [pickupTimeSlot, setPickupTimeSlot] = useState('30_MINS');
-  const [customPickupTime, setCustomPickupTime] = useState('');
-  const [deliveryStreet, setDeliveryStreet] = useState('');
-  const [deliveryPostalCode, setDeliveryPostalCode] = useState('');
-  const [deliveryPhone, setDeliveryPhone] = useState(currentUser?.mobile_number || '');
-  const [deliveryInstructions, setDeliveryInstructions] = useState('');
+  const [fulfillmentMode, setFulfillmentMode] = useState(() => initialDraft?.fulfillmentMode || 'PICKUP'); // 'PICKUP' | 'DELIVERY'
+  const [pickupRestaurantId, setPickupRestaurantId] = useState(() => initialDraft?.pickupRestaurantId || '');
+  const [pickupTimeSlot, setPickupTimeSlot] = useState(() => initialDraft?.pickupTimeSlot || '30_MINS');
+  const [customPickupTime, setCustomPickupTime] = useState(() => initialDraft?.customPickupTime || '');
+  const [deliveryStreet, setDeliveryStreet] = useState(() => initialDraft?.deliveryStreet || '');
+  const [deliveryPostalCode, setDeliveryPostalCode] = useState(() => initialDraft?.deliveryPostalCode || '');
+  const [deliveryPhone, setDeliveryPhone] = useState(
+    () => initialDraft?.deliveryPhone || currentUser?.mobile_number || ''
+  );
+  const [deliveryInstructions, setDeliveryInstructions] = useState(() => initialDraft?.deliveryInstructions || '');
 
   const [discountCodeInput, setDiscountCodeInput] = useState('');
-  const [appliedDiscount, setAppliedDiscount] = useState(null);
+  const [appliedDiscount, setAppliedDiscount] = useState(() => initialDraft?.appliedDiscount || null);
   const [discountStatus, setDiscountStatus] = useState(null);
+
+  // Auth prompt modal for unauthenticated checkout
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Payment & Order Submission state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -302,6 +320,42 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
     }
     loadCatalog();
   }, []);
+
+  // Auto-persist order draft whenever configuration changes
+  useEffect(() => {
+    if (!placedOrder) {
+      saveOrderDraft({
+        packSize,
+        drinks,
+        activeSlotIndex,
+        currentStage,
+        fulfillmentMode,
+        pickupRestaurantId,
+        pickupTimeSlot,
+        customPickupTime,
+        deliveryStreet,
+        deliveryPostalCode,
+        deliveryPhone,
+        deliveryInstructions,
+        appliedDiscount,
+      });
+    }
+  }, [
+    placedOrder,
+    packSize,
+    drinks,
+    activeSlotIndex,
+    currentStage,
+    fulfillmentMode,
+    pickupRestaurantId,
+    pickupTimeSlot,
+    customPickupTime,
+    deliveryStreet,
+    deliveryPostalCode,
+    deliveryPhone,
+    deliveryInstructions,
+    appliedDiscount,
+  ]);
 
   // Handle Pack Size Switch
   function handlePackSizeChange(size) {
@@ -497,6 +551,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
 
   // Reset entire box
   function handleResetBox() {
+    clearOrderDraft();
     setDrinks((prev) =>
       prev.map((d) => ({
         id: d.id,
@@ -507,6 +562,15 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
       }))
     );
     setActiveSlotIndex(0);
+  }
+
+  // Handle successful auth from inline modal
+  function handleAuthModalSuccess(user) {
+    setShowAuthModal(false);
+    if (onAuthSuccess) {
+      onAuthSuccess(user);
+    }
+    setCurrentStage('review');
   }
 
   // Clear single slot
@@ -595,6 +659,10 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
 
   // Handle Order Placement to Supabase
   async function handleProceedToPayment() {
+    if (!currentUser) {
+      setShowAuthModal(true);
+      return;
+    }
     if (!isOrderReady || !isFulfillmentValid) return;
     setSubmitting(true);
     setSubmitError('');
@@ -769,6 +837,8 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         },
       });
 
+      clearOrderDraft();
+
       setShowPaymentModal(false);
       setPendingOrderData(null);
     } catch (err) {
@@ -802,7 +872,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         <header className="box-nav-header">
           <div
             className="box-nav-logo"
-            onClick={onBackToLanding}
+            onClick={() => navigate('/')}
             role="button"
             tabIndex={0}
             title="Milky — Artisan Milkshakes"
@@ -811,31 +881,36 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
           </div>
 
           <nav className="box-nav-pill-menu" aria-label="Main Navigation">
-            {['Packs', 'Flavours', 'Philosophy', 'FAQ'].map((tab) => {
-              const isActive = tab === 'Packs';
+            {[
+              { label: 'Home', path: '/' },
+              { label: 'Orders', path: '/orders' },
+              { label: 'Flavours', path: '/flavours' },
+              { label: 'Philosophy', path: '/philosophy' },
+            ].map((tab) => {
+              const isActive = tab.label === 'Orders';
               return (
                 <button
-                  key={tab}
+                  key={tab.label}
                   className={`box-nav-pill-item ${isActive ? 'active' : ''}`}
                   onClick={() => {
-                    if (tab === 'Packs') {
+                    if (tab.label === 'Orders') {
                       handleResetBox();
                       setPlacedOrder(null);
                       setCurrentStage('builder');
-                    } else if (onBackToLanding) {
-                      onBackToLanding(tab);
+                    } else {
+                      navigate(tab.path);
                     }
                   }}
                   type="button"
                 >
-                  {tab}
+                  {tab.label}
                 </button>
               );
             })}
           </nav>
 
           <div className="box-nav-actions">
-            {onSignOut && (
+            {currentUser ? (
               <button
                 type="button"
                 className="box-btn-ghost-pill signout-btn"
@@ -843,6 +918,15 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                 title="Sign Out"
               >
                 Sign Out
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="box-btn-ghost-pill signin-btn"
+                onClick={() => navigate('/auth?returnUrl=/orders')}
+                title="Sign In"
+              >
+                Sign In
               </button>
             )}
           </div>
@@ -946,7 +1030,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         {/* Brand Logo */}
         <div
           className="box-nav-logo"
-          onClick={onBackToLanding}
+          onClick={() => navigate('/')}
           role="button"
           tabIndex={0}
           title="Milky — Artisan Milkshakes"
@@ -956,22 +1040,27 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
 
         {/* Centered Floating Pill Navigation */}
         <nav className="box-nav-pill-menu" aria-label="Main Navigation">
-          {['Packs', 'Flavours', 'Philosophy', 'FAQ'].map((tab) => {
-            const isActive = tab === 'Packs';
+          {[
+            { label: 'Home', path: '/' },
+            { label: 'Orders', path: '/orders' },
+            { label: 'Flavours', path: '/flavours' },
+            { label: 'Philosophy', path: '/philosophy' },
+          ].map((tab) => {
+            const isActive = tab.label === 'Orders';
             return (
               <button
-                key={tab}
+                key={tab.label}
                 className={`box-nav-pill-item ${isActive ? 'active' : ''}`}
                 onClick={() => {
-                  if (tab === 'Packs') {
+                  if (tab.label === 'Orders') {
                     setCurrentStage('builder');
-                  } else if (onBackToLanding) {
-                    onBackToLanding(tab);
+                  } else {
+                    navigate(tab.path);
                   }
                 }}
                 type="button"
               >
-                {tab}
+                {tab.label}
               </button>
             );
           })}
@@ -1003,7 +1092,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
             <span>Cart ({filledDrinksCount})</span>
           </button>
 
-          {onSignOut && (
+          {currentUser ? (
             <button
               type="button"
               className="box-btn-ghost-pill signout-btn"
@@ -1011,6 +1100,15 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
               title="Sign Out"
             >
               Sign Out
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="box-btn-ghost-pill signin-btn"
+              onClick={() => navigate('/auth?returnUrl=/orders')}
+              title="Sign In"
+            >
+              Sign In
             </button>
           )}
         </div>
@@ -1372,7 +1470,13 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                 <button
                   type="button"
                   className="btn-proceed-review"
-                  onClick={() => setCurrentStage('review')}
+                  onClick={() => {
+                    if (!currentUser) {
+                      setShowAuthModal(true);
+                    } else {
+                      setCurrentStage('review');
+                    }
+                  }}
                   disabled={filledDrinksCount < MIN_DRINKS_PER_ORDER}
                 >
                   Review Box & Fulfillment ({filledDrinksCount} Shakes) &rarr;
@@ -1716,6 +1820,13 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
           </div>
         </div>
       )}
+      {/* Auth Prompt Modal (For Unauthenticated Customers) */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onAuthSuccess={handleAuthModalSuccess}
+        packSummary={`Your ${packSize}-Pack Box (${filledDrinksCount} Shakes)`}
+      />
     </div>
   );
 }
