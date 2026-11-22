@@ -190,6 +190,13 @@ export default function LandingPage({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [goToNext, goToPrev]);
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      goToNext();
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [goToNext]);
+
   return (
     <div className="landing-page-root">
       {/* Dynamic Animated Background Wave Layer */}
