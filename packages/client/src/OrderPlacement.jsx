@@ -636,15 +636,19 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
     }
   }
 
-  // Live order totals calculation
+  // Live order totals calculation & configured items
   const deliveryFee = fulfillmentMode === 'DELIVERY' ? DEFAULT_DELIVERY_FEE : 0;
-  const orderTotals = useMemo(() => {
-    return calculateOrderTotals(drinks, effectiveDiscount, vatRate, deliveryFee);
-  }, [drinks, effectiveDiscount, vatRate, deliveryFee]);
+  const configuredDrinks = useMemo(
+    () => drinks.filter((d) => Boolean(d && d.flavourId)),
+    [drinks]
+  );
+  const filledDrinksCount = configuredDrinks.length;
+  // Dynamic checkout: allows proceeding as long as at least 1 drink is selected (partial packs supported)
+  const isOrderReady = filledDrinksCount >= MIN_DRINKS_PER_ORDER;
 
-  // Number of configured drinks
-  const filledDrinksCount = drinks.filter((d) => d.flavourId).length;
-  const isOrderReady = filledDrinksCount >= MIN_DRINKS_PER_ORDER && drinks.every((d) => d.flavourId);
+  const orderTotals = useMemo(() => {
+    return calculateOrderTotals(configuredDrinks, effectiveDiscount, vatRate, deliveryFee);
+  }, [configuredDrinks, effectiveDiscount, vatRate, deliveryFee]);
 
   // Validate fulfillment
   const isFulfillmentValid = useMemo(() => {
@@ -730,7 +734,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
             vat_amount: orderTotals.vat,
             delivery_fee: orderTotals.deliveryFee,
             total_amount: orderTotals.total,
-            items_count: drinks.length,
+            items_count: configuredDrinks.length,
           },
         ])
         .select()
@@ -740,8 +744,8 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
 
       const orderId = insertedOrder.id;
 
-      // Insert line items
-      const lineItems = drinks.map((drink, idx) => ({
+      // Insert line items (only configured drinks)
+      const lineItems = configuredDrinks.map((drink, idx) => ({
         order_id: orderId,
         item_number: idx + 1,
         flavour_id: isUuid(drink.flavourId) ? drink.flavourId : null,
@@ -759,7 +763,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         orderId,
         orderNumber: insertedOrder.order_number || uniqueOrderNumber,
         fulfillment: fulfillmentData,
-        items: drinks.map((d, i) => {
+        items: configuredDrinks.map((d, i) => {
           const f = flavours.find((x) => String(x.id) === String(d.flavourId));
           const c = consistencies.find((x) => String(x.id) === String(d.consistencyId));
           const t = toppings.find((x) => String(x.id) === String(d.toppingId));
@@ -1134,6 +1138,13 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
               <div className="box-pack-size-selector" role="group" aria-label="Pack Size Selector">
                 <button
                   type="button"
+                  className={`btn-pack-size ${packSize === 1 ? 'is-active' : ''}`}
+                  onClick={() => handlePackSizeChange(1)}
+                >
+                  Single
+                </button>
+                <button
+                  type="button"
                   className={`btn-pack-size ${packSize === 2 ? 'is-active' : ''}`}
                   onClick={() => handlePackSizeChange(2)}
                 >
@@ -1461,8 +1472,10 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                 <div className="deck-summary-header">Current Box Estimate</div>
                 <div className="deck-summary-price">{formatCurrency(orderTotals.total)}</div>
                 <p className="deck-summary-note">
-                  {filledDrinksCount < packSize
-                    ? `Fill ${packSize - filledDrinksCount} more slots to complete your pack.`
+                  {filledDrinksCount === 0
+                    ? 'Select at least 1 milkshake to proceed.'
+                    : filledDrinksCount < packSize
+                    ? `${filledDrinksCount} of ${packSize} slots filled. You can checkout now or fill ${packSize - filledDrinksCount} more!`
                     : effectiveDiscount
                     ? `${effectiveDiscount.tier_name} automatically applied!`
                     : 'All slots locked! Ready for fulfillment.'}
@@ -1479,7 +1492,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                   }}
                   disabled={filledDrinksCount < MIN_DRINKS_PER_ORDER}
                 >
-                  Review Box & Fulfillment ({filledDrinksCount} Shakes) &rarr;
+                  Review Box & Fulfillment ({filledDrinksCount} {filledDrinksCount === 1 ? 'Shake' : 'Shakes'}) &rarr;
                 </button>
               </div>
             </section>
@@ -1497,7 +1510,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                     <IconCheck /> Pack Ready
                   </div>
                   <h2 className="box-page-title" style={{ fontSize: '24px', margin: 0 }}>
-                    Artisan {packSize}-Pack Crate
+                    Artisan Crate ({configuredDrinks.length} {configuredDrinks.length === 1 ? 'Shake' : 'Shakes'})
                   </h2>
                 </div>
                 <button
@@ -1509,9 +1522,9 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                 </button>
               </div>
 
-              {/* Items List */}
+              {/* Items List (only configured drinks) */}
               <div className="packed-items-stack">
-                {drinks.map((item, idx) => {
+                {configuredDrinks.map((item, idx) => {
                   const f = flavours.find((x) => String(x.id) === String(item.flavourId));
                   const c = consistencies.find((x) => String(x.id) === String(item.consistencyId));
                   const t = toppings.find((x) => String(x.id) === String(item.toppingId));
@@ -1526,7 +1539,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                           style={{ width: '38px', height: '48px', objectFit: 'contain' }}
                         />
                         <div>
-                          <div className="packed-item-title">{f ? getItemName(f) : 'Unassigned Shake'}</div>
+                          <div className="packed-item-title">{f ? getItemName(f) : 'Custom Shake'}</div>
                           <div className="packed-item-sub">
                             {c ? getItemName(c) : 'Smooth'} | Topping: {t ? getItemName(t) : 'None'}
                           </div>
@@ -1668,7 +1681,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
               {/* Receipt Breakdown Table */}
               <div className="receipt-table-card">
                 <div className="receipt-row">
-                  <span>Subtotal ({drinks.length} Milkshakes)</span>
+                  <span>Subtotal ({configuredDrinks.length} {configuredDrinks.length === 1 ? 'Milkshake' : 'Milkshakes'})</span>
                   <span>{formatCurrency(orderTotals.subtotal)}</span>
                 </div>
                 {orderTotals.discountAmount > 0 && (
