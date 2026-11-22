@@ -309,8 +309,8 @@ export function MilkyReceiptPrinter({
   const deliveryFee = order.totals?.deliveryFee ?? order.delivery_fee ?? 0;
   const fulfillmentMode = order.fulfillment?.mode || order.fulfillment_mode || 'PICKUP';
   const isPickup = fulfillmentMode === 'PICKUP';
-  const storeName = order.fulfillment?.restaurantName || 'Milky Shakes Flagship Store';
-  const storeAddress = order.fulfillment?.restaurantAddress || '123 Shake Boulevard, Cape Town';
+  const storeName = order.fulfillment?.restaurantName || 'Toppan Security — Irene HQ (Centurion / Pretoria)';
+  const storeAddress = order.fulfillment?.restaurantAddress || '1st Floor, Block B, Southdowns Office Park, Irene, 0157';
   const settledAt = order.payment?.settledAt
     ? new Date(order.payment.settledAt).toLocaleString()
     : new Date().toLocaleString();

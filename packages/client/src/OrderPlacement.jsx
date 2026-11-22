@@ -112,6 +112,81 @@ function IconPrint() {
   );
 }
 
+function IconCup({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M7 2h10l-1.5 18a2 2 0 0 1-2 1.8h-3a2 2 0 0 1-2-1.8L7 2z" />
+      <path d="M6 6h12" />
+      <line x1="12" y1="2" x2="12" y2="1" />
+    </svg>
+  );
+}
+
+function IconDoubleCup({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 4h6.5l-1 14a1.5 1.5 0 0 1-1.5 1.4h-1.5A1.5 1.5 0 0 1 5 18L4 4z" />
+      <path d="M13.5 4H20l-1 14a1.5 1.5 0 0 1-1.5 1.4H16a1.5 1.5 0 0 1-1.5-1.4L13.5 4z" />
+    </svg>
+  );
+}
+
+function IconBox4({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="3" />
+      <line x1="12" y1="3" x2="12" y2="21" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+    </svg>
+  );
+}
+
+function IconBox6({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="3" />
+      <line x1="9.5" y1="3" x2="9.5" y2="21" />
+      <line x1="14.5" y1="3" x2="14.5" y2="21" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+    </svg>
+  );
+}
+
+const PACK_OPTIONS = [
+  {
+    size: 1,
+    title: 'Single',
+    subtitle: 'Solo artisan shake',
+    slotsLabel: '1 Slot',
+    icon: <IconCup />,
+  },
+  {
+    size: 2,
+    title: '2-Pack',
+    subtitle: 'Duo pair for two',
+    slotsLabel: '2 Slots',
+    icon: <IconDoubleCup />,
+  },
+  {
+    size: 4,
+    title: '4-Pack',
+    subtitle: 'Family favorites box',
+    slotsLabel: '4 Slots',
+    badge: '10% OFF',
+    badgeType: 'badge-discount',
+    icon: <IconBox4 />,
+  },
+  {
+    size: 6,
+    title: '6-Pack',
+    subtitle: 'Party crate + cold bag',
+    slotsLabel: '6 Slots',
+    badge: '15% OFF',
+    badgeType: 'badge-best-value',
+    icon: <IconBox6 />,
+  },
+];
+
 // Helper to check if string is a valid UUID
 function isUuid(val) {
   return (
@@ -269,6 +344,45 @@ function getFlavourVisual(name = '') {
   };
 }
 
+// Official Toppan Security collection branches across South Africa
+export const TOPPAN_SECURITY_BRANCHES = [
+  {
+    id: '5bf910ce-6107-463e-907d-261a075ccc29',
+    name: 'Toppan Security — Irene HQ (Centurion / Pretoria)',
+    address: '1st Floor, Block B, Southdowns Office Park, Cnr John Vorster & Karee St, Irene, 0157',
+    contact_number: '+27 12 676 0000',
+    city: 'Pretoria / Centurion, Gauteng',
+  },
+  {
+    id: 'e373e658-fa8c-4ee0-999a-05544aefa950',
+    name: 'Toppan Security — Johannesburg (Sandton Hub)',
+    address: '135 Rivonia Road, Sandton, Johannesburg, Gauteng, 2196',
+    contact_number: '+27 11 784 1000',
+    city: 'Johannesburg, Gauteng',
+  },
+  {
+    id: 'eb5f2a95-9f3f-4176-88bf-1ae6b2718163',
+    name: 'Toppan Security — Cape Town (Century City Hub)',
+    address: 'The Boulevard Office Park, Century Boulevard, Century City, Cape Town, 7441',
+    contact_number: '+27 21 552 2000',
+    city: 'Cape Town, Western Cape',
+  },
+  {
+    id: '6b4e4a54-5287-4a7d-916d-3a2573de9e66',
+    name: 'Toppan Security — Durban (Umhlanga Ridge Hub)',
+    address: '21 Richefond Circle, Ridgeside Office Park, Umhlanga, Durban, 4319',
+    contact_number: '+27 31 566 3000',
+    city: 'Durban, KwaZulu-Natal',
+  },
+  {
+    id: '185f3f6a-d98a-4956-b0d1-0a15760501c8',
+    name: 'Toppan Security — Gqeberha (Fairview Hub)',
+    address: '120 Norvic Drive, Greenacres / Fairview, Gqeberha, 6070',
+    contact_number: '+27 41 363 4000',
+    city: 'Gqeberha, Eastern Cape',
+  },
+];
+
 export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding, onAuthSuccess }) {
   const { navigate } = useRouter();
 
@@ -281,7 +395,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
   const [toppings, setToppings] = useState([]);
   const [discountTiers, setDiscountTiers] = useState([]);
   const [vatRate, setVatRate] = useState(0.15);
-  const [restaurants, setRestaurants] = useState([]);
+  const [restaurants, setRestaurants] = useState(TOPPAN_SECURITY_BRANCHES);
   const [loadingCatalog, setLoadingCatalog] = useState(true);
   const [databaseError, setDatabaseError] = useState(null);
 
@@ -305,7 +419,9 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
 
   // Fulfillment & Discount state
   const [fulfillmentMode, setFulfillmentMode] = useState(() => initialDraft?.fulfillmentMode || 'PICKUP'); // 'PICKUP' | 'DELIVERY'
-  const [pickupRestaurantId, setPickupRestaurantId] = useState(() => initialDraft?.pickupRestaurantId || '');
+  const [pickupRestaurantId, setPickupRestaurantId] = useState(
+    () => initialDraft?.pickupRestaurantId || TOPPAN_SECURITY_BRANCHES[0].id
+  );
   const [pickupTimeSlot, setPickupTimeSlot] = useState(() => initialDraft?.pickupTimeSlot || '30_MINS');
   const [customPickupTime, setCustomPickupTime] = useState(() => initialDraft?.customPickupTime || '');
   const [deliveryStreet, setDeliveryStreet] = useState(() => initialDraft?.deliveryStreet || '');
@@ -373,6 +489,27 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         if (!tData || tData.length === 0) throw { table: 'toppings', message: 'No topping rows found.' };
         setToppings(tData);
 
+        const standardConsistency = cData.find((c) => getItemPrice(c) === 0) || cData[0];
+        const defaultTopping = tData[0];
+
+        setDrinks((prev) => {
+          return prev.map((d) => {
+            if (!d.flavourId) return d;
+            const cId = d.consistencyId || standardConsistency?.id || '';
+            const tId = d.toppingId || defaultTopping?.id || '';
+            const f = catalogFlavours.find((x) => String(x.id) === String(d.flavourId));
+            const c = cData.find((x) => String(x.id) === String(cId)) || standardConsistency;
+            const t = tData.find((x) => String(x.id) === String(tId)) || defaultTopping;
+            const cost = Math.round(((f ? getItemPrice(f) : 0) + (c ? getItemPrice(c) : 0) + (t ? getItemPrice(t) : 0)) * 100) / 100;
+            return {
+              ...d,
+              consistencyId: cId,
+              toppingId: tId,
+              cost,
+            };
+          });
+        });
+
         const { data: dTiers } = await supabase.from('discount_tiers').select('*');
         setDiscountTiers(dTiers || []);
 
@@ -386,10 +523,14 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         }
 
         const { data: restData } = await supabase.from('restaurants').select('*').eq('is_active', true);
-        if (restData && restData.length > 0) {
-          setRestaurants(restData);
-          setPickupRestaurantId(restData[0].id);
-        }
+        const toppanBranches = (restData || []).filter((r) =>
+          (r.name || '').toLowerCase().includes('toppan')
+        );
+        const activeBranches = toppanBranches.length > 0 ? toppanBranches : TOPPAN_SECURITY_BRANCHES;
+        setRestaurants(activeBranches);
+        setPickupRestaurantId((prev) =>
+          prev && activeBranches.some((b) => b.id === prev) ? prev : activeBranches[0]?.id
+        );
       } catch (err) {
         console.error('Database load error:', err);
         setDatabaseError({
@@ -468,19 +609,19 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
 
   // Calculate single drink cost
   function computeDrinkCost(fId, cId, tId) {
+    if (!fId) return 0;
     let cost = 0;
-    if (fId) {
-      const f = flavours.find((x) => String(x.id) === String(fId));
-      if (f) cost += getItemPrice(f);
-    }
-    if (cId) {
-      const c = consistencies.find((x) => String(x.id) === String(cId));
-      if (c) cost += getItemPrice(c);
-    }
-    if (tId) {
-      const t = toppings.find((x) => String(x.id) === String(tId));
-      if (t) cost += getItemPrice(t);
-    }
+    const f = flavours.find((x) => String(x.id) === String(fId));
+    if (f) cost += getItemPrice(f);
+
+    const standardConsistency = consistencies.find((c) => getItemPrice(c) === 0) || consistencies[0];
+    const c = consistencies.find((x) => String(x.id) === String(cId)) || standardConsistency;
+    if (c) cost += getItemPrice(c);
+
+    const defaultTopping = toppings[0];
+    const t = toppings.find((x) => String(x.id) === String(tId)) || defaultTopping;
+    if (t) cost += getItemPrice(t);
+
     return Math.round(cost * 100) / 100;
   }
 
@@ -490,6 +631,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
   const activeConsistency = consistencies.find((c) => String(c.id) === String(activeDrink?.consistencyId));
   const activeTopping = toppings.find((t) => String(t.id) === String(activeDrink?.toppingId));
   const activeVisual = getFlavourVisual(activeFlavour ? getItemName(activeFlavour) : 'Signature');
+  const selectedRestaurant = restaurants.find((r) => r.id === pickupRestaurantId) || restaurants[0];
 
   // 3D Cursor Tilt Parallax State & Handlers
   const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, glareX: 0, glareY: 0 });
@@ -521,13 +663,23 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
 
   // Update field on active drink
   function updateActiveDrink(field, value) {
+    const standardConsistency = consistencies.find((c) => getItemPrice(c) === 0) || consistencies[0];
+    const defaultTopping = toppings[0];
     setDrinks((prev) => {
       const copy = [...prev];
       const current = { ...copy[activeSlotIndex], [field]: value };
+      if (field === 'flavourId' && value) {
+        if (!current.consistencyId && standardConsistency) {
+          current.consistencyId = standardConsistency.id;
+        }
+        if (!current.toppingId && defaultTopping) {
+          current.toppingId = defaultTopping.id;
+        }
+      }
       current.cost = computeDrinkCost(
-        field === 'flavourId' ? value : current.flavourId,
-        field === 'consistencyId' ? value : current.consistencyId,
-        field === 'toppingId' ? value : current.toppingId
+        current.flavourId,
+        current.consistencyId,
+        current.toppingId
       );
       copy[activeSlotIndex] = current;
       return copy;
@@ -564,7 +716,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
           return d;
         }
         const randomFlavour = flavours[index % flavours.length];
-        const defaultConsistency = consistencies[0];
+        const defaultConsistency = consistencies.find((c) => getItemPrice(c) === 0) || consistencies[0];
         const randomTopping = toppings[(index + 1) % toppings.length];
         const cost = computeDrinkCost(randomFlavour.id, defaultConsistency.id, randomTopping.id);
         return {
@@ -784,7 +936,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
       // Ensure valid restaurant ID (required NOT NULL by orders table)
       const validRestaurantId =
         (pickupRestaurantId && isUuid(pickupRestaurantId) ? pickupRestaurantId : null) ||
-        (restaurants.length > 0 ? restaurants[0].id : '243141d7-add7-4e1b-8717-3151d4adb3ee');
+        (restaurants.length > 0 ? restaurants[0].id : TOPPAN_SECURITY_BRANCHES[0].id);
 
       // Ensure pickup_time is always a valid ISO timestamp (required NOT NULL by orders table)
       const validPickupTime = computedPickupTime || new Date(Date.now() + 30 * 60 * 1000).toISOString();
@@ -792,8 +944,8 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
       const fulfillmentData = {
         mode: fulfillmentMode,
         restaurantId: validRestaurantId,
-        restaurantName: selectedRestaurant?.name || 'Milky Shakes Store',
-        restaurantAddress: selectedRestaurant?.address || '',
+        restaurantName: selectedRestaurant?.name || TOPPAN_SECURITY_BRANCHES[0].name,
+        restaurantAddress: selectedRestaurant?.address || TOPPAN_SECURITY_BRANCHES[0].address,
         pickupTimeSlot: fulfillmentMode === 'PICKUP' ? pickupTimeSlot : null,
         pickupTime: validPickupTime,
         streetAddress: fulfillmentMode === 'DELIVERY' ? deliveryStreet.trim() : null,
@@ -802,6 +954,55 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         deliveryInstructions: fulfillmentMode === 'DELIVERY' ? deliveryInstructions.trim() : null,
       };
 
+      // Prepare line items first to ensure mathematical precision and satisfy chk_order_items_item_total:
+      // CHECK (item_total = flavour_price_snapshot + consistency_price_snapshot + topping_price_snapshot)
+      const defaultConsistency = consistencies.find((c) => getItemPrice(c) === 0) || consistencies[0];
+      const defaultTopping = toppings[0];
+
+      const lineItemsData = configuredDrinks.map((drink, idx) => {
+        let resolvedFlavour = flavours.find((x) => String(x.id) === String(drink.flavourId));
+        if (!resolvedFlavour && drink.flavourId) {
+          const lower = String(drink.flavourId).toLowerCase();
+          resolvedFlavour = flavours.find((x) => (x.name || '').toLowerCase().includes(lower));
+        }
+        if (!resolvedFlavour) resolvedFlavour = flavours[0];
+
+        let resolvedConsistency =
+          consistencies.find((x) => String(x.id) === String(drink.consistencyId)) || defaultConsistency;
+
+        let resolvedTopping =
+          toppings.find((x) => String(x.id) === String(drink.toppingId)) || defaultTopping;
+
+        const fPrice = getItemPrice(resolvedFlavour);
+        const cPrice = getItemPrice(resolvedConsistency);
+        const tPrice = getItemPrice(resolvedTopping);
+        // Explicitly sum snapshots so it satisfies PostgreSQL chk_order_items_item_total:
+        const itemTotal = Math.round((fPrice + cPrice + tPrice) * 100) / 100;
+
+        return {
+          drink_number: idx + 1,
+          flavour_id: resolvedFlavour?.id,
+          flavour_name_snapshot: getItemName(resolvedFlavour) || 'Flavour',
+          flavour_price_snapshot: fPrice,
+          consistency_id: resolvedConsistency?.id,
+          consistency_name_snapshot: getItemName(resolvedConsistency) || 'Standard',
+          consistency_price_snapshot: cPrice,
+          topping_id: resolvedTopping?.id,
+          topping_name_snapshot: getItemName(resolvedTopping) || 'Topping',
+          topping_price_snapshot: tPrice,
+          item_total: itemTotal,
+        };
+      });
+
+      // Calculate order totals using shared helper with lineItemsData
+      const deliveryFeeAmount = fulfillmentMode === 'DELIVERY' ? deliveryFee : 0;
+      const computedTotals = calculateOrderTotals(
+        lineItemsData.map((it) => ({ cost: it.item_total })),
+        effectiveDiscount,
+        vatRate,
+        deliveryFeeAmount
+      );
+
       const orderPayload = {
         order_number: uniqueOrderNumber,
         patron_id: patronUuid,
@@ -809,15 +1010,15 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         fulfillment_mode: fulfillmentMode,
         restaurant_id: validRestaurantId,
         pickup_time: validPickupTime,
-        number_of_drinks: configuredDrinks.length,
-        items_count: configuredDrinks.length,
-        subtotal_amount: orderTotals.subtotal,
-        subtotal: orderTotals.subtotal,
-        discount_amount: orderTotals.discountAmount,
+        number_of_drinks: lineItemsData.length,
+        items_count: lineItemsData.length,
+        subtotal_amount: computedTotals.subtotal,
+        subtotal: computedTotals.subtotal,
+        discount_amount: computedTotals.discountAmount ?? 0,
         vat_rate: vatRate,
-        vat_amount: orderTotals.vat,
-        total_amount: orderTotals.total,
-        delivery_fee: fulfillmentMode === 'DELIVERY' ? orderTotals.deliveryFee : 0,
+        vat_amount: computedTotals.vat,
+        total_amount: computedTotals.total,
+        delivery_fee: deliveryFeeAmount,
         delivery_address: fulfillmentMode === 'DELIVERY' ? deliveryStreet.trim() : null,
         delivery_postal_code: fulfillmentMode === 'DELIVERY' ? deliveryPostalCode.trim() : null,
         recipient_phone: fulfillmentMode === 'DELIVERY' ? deliveryPhone.trim() : null,
@@ -835,40 +1036,10 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
       const orderId = insertedOrder.id;
 
       // Insert line items matching exact schema of order_items
-      const lineItems = configuredDrinks.map((drink, idx) => {
-        let resolvedFlavour = flavours.find((x) => String(x.id) === String(drink.flavourId));
-        if (!resolvedFlavour && drink.flavourId) {
-          const lower = String(drink.flavourId).toLowerCase();
-          resolvedFlavour = flavours.find((x) => (x.name || '').toLowerCase().includes(lower));
-        }
-        if (!resolvedFlavour) resolvedFlavour = flavours[0];
-
-        let resolvedConsistency = consistencies.find((x) => String(x.id) === String(drink.consistencyId));
-        if (!resolvedConsistency) resolvedConsistency = consistencies[0];
-
-        let resolvedTopping = toppings.find((x) => String(x.id) === String(drink.toppingId));
-        if (!resolvedTopping) resolvedTopping = toppings[0];
-
-        const fPrice = getItemPrice(resolvedFlavour);
-        const cPrice = getItemPrice(resolvedConsistency);
-        const tPrice = getItemPrice(resolvedTopping);
-        const itemTotal = Number(drink.cost) || Math.round((fPrice + cPrice + tPrice) * 100) / 100;
-
-        return {
-          order_id: orderId,
-          drink_number: idx + 1,
-          flavour_id: resolvedFlavour?.id || null,
-          flavour_name_snapshot: getItemName(resolvedFlavour) || 'Flavour',
-          flavour_price_snapshot: fPrice,
-          consistency_id: resolvedConsistency?.id || null,
-          consistency_name_snapshot: getItemName(resolvedConsistency) || 'Standard',
-          consistency_price_snapshot: cPrice,
-          topping_id: resolvedTopping?.id || null,
-          topping_name_snapshot: getItemName(resolvedTopping) || 'Topping',
-          topping_price_snapshot: tPrice,
-          item_total: itemTotal,
-        };
-      });
+      const lineItems = lineItemsData.map((item) => ({
+        ...item,
+        order_id: orderId,
+      }));
 
       const { error: itemsErr } = await supabase.from('order_items').insert(lineItems);
       if (itemsErr) throw itemsErr;
@@ -877,19 +1048,14 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         orderId,
         orderNumber: insertedOrder.order_number || uniqueOrderNumber,
         fulfillment: fulfillmentData,
-        items: configuredDrinks.map((d, i) => {
-          const f = flavours.find((x) => String(x.id) === String(d.flavourId));
-          const c = consistencies.find((x) => String(x.id) === String(d.consistencyId));
-          const t = toppings.find((x) => String(x.id) === String(d.toppingId));
-          return {
-            number: i + 1,
-            flavour: getItemName(f),
-            consistency: getItemName(c),
-            topping: getItemName(t),
-            cost: d.cost,
-          };
-        }),
-        totals: orderTotals,
+        items: lineItemsData.map((it) => ({
+          number: it.drink_number,
+          flavour: it.flavour_name_snapshot,
+          consistency: it.consistency_name_snapshot,
+          topping: it.topping_name_snapshot,
+          cost: it.item_total,
+        })),
+        totals: computedTotals,
         status: 'PENDING_PAYMENT',
       };
 
@@ -1163,48 +1329,73 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
           <div className="box-title-pack-header">
             <div>
               <h1 className="box-page-title">
-                {currentStage === 'builder' ? `Build Your ${packSize}-Pack Box` : 'Review Box & Fulfillment'}
+                {currentStage === 'builder'
+                  ? packSize === 1
+                    ? 'Build Your Single Milkshake'
+                    : packSize === 2
+                    ? 'Build Your 2-Pack Duo Box'
+                    : packSize === 4
+                    ? 'Build Your 4-Pack Family Box'
+                    : 'Build Your 6-Pack Party Crate'
+                  : 'Review Box & Fulfillment'}
               </h1>
               <p className="box-page-subtitle">
                 {currentStage === 'builder'
-                  ? 'Select any slot in your carry box below to customize that milkshake, or use Barista’s Choice to randomize.'
+                  ? 'Choose your pack size below, then customize each milkshake recipe in your carry tray.'
                   : 'All slots configured. Choose store collection or thermal courier delivery.'}
               </p>
             </div>
-
-            {currentStage === 'builder' && (
-              <div className="box-pack-size-selector" role="group" aria-label="Pack Size Selector">
-                <button
-                  type="button"
-                  className={`btn-pack-size ${packSize === 1 ? 'is-active' : ''}`}
-                  onClick={() => handlePackSizeChange(1)}
-                >
-                  Single
-                </button>
-                <button
-                  type="button"
-                  className={`btn-pack-size ${packSize === 2 ? 'is-active' : ''}`}
-                  onClick={() => handlePackSizeChange(2)}
-                >
-                  2-Pack
-                </button>
-                <button
-                  type="button"
-                  className={`btn-pack-size ${packSize === 4 ? 'is-active' : ''}`}
-                  onClick={() => handlePackSizeChange(4)}
-                >
-                  4-Pack (10% Off)
-                </button>
-                <button
-                  type="button"
-                  className={`btn-pack-size ${packSize === 6 ? 'is-active' : ''}`}
-                  onClick={() => handlePackSizeChange(6)}
-                >
-                  6-Pack (15% Off)
-                </button>
-              </div>
-            )}
           </div>
+
+          {/* Prominent Pack Size Selection Deck */}
+          {currentStage === 'builder' && (
+            <section className="pack-selection-deck" aria-label="Pack Size Selector">
+              <div className="pack-selection-deck-header">
+                <span className="pack-selection-step-tag">Step 1</span>
+                <span className="pack-selection-deck-title">Choose Your Pack Size</span>
+                <span className="pack-selection-deck-sub">
+                  Select your bundle size — 4-pack and 6-pack unlock automatic savings &amp; cold bags!
+                </span>
+              </div>
+
+              <div className="pack-cards-grid" role="radiogroup" aria-label="Pack Size Options">
+                {PACK_OPTIONS.map((opt) => {
+                  const isSelected = packSize === opt.size;
+                  return (
+                    <button
+                      key={opt.size}
+                      type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      className={`pack-card-btn ${isSelected ? 'is-selected' : ''}`}
+                      onClick={() => handlePackSizeChange(opt.size)}
+                    >
+                      <div className="pack-card-top-row">
+                        <div className="pack-card-icon-frame">
+                          {opt.icon}
+                        </div>
+                        <div className="pack-card-top-right">
+                          {opt.badge && (
+                            <span className={`pack-card-badge ${opt.badgeType || ''}`}>
+                              {opt.badge}
+                            </span>
+                          )}
+                          <div className="pack-card-radio-indicator" aria-hidden="true">
+                            {isSelected ? <IconCheck /> : <span className="radio-dot" />}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="pack-card-name">{opt.title}</div>
+                      <div className="pack-card-desc">{opt.subtitle}</div>
+                      <div className="pack-card-slots-pill">
+                        {opt.slotsLabel}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
           {/* Gamified Volume Discount Track */}
           <div className="box-discount-meter" aria-label="Pack Discount Progress">
@@ -1308,7 +1499,9 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
               {/* Tactile Carry Tray Inset */}
               <div className="stage-tray-section">
                 <div className="tray-section-header">
-                  <h3 className="tray-section-title">Artisan Kraft Carry Tray ({packSize} Slots)</h3>
+                  <h3 className="tray-section-title">
+                    Artisan Kraft Carry Tray ({packSize} {packSize === 1 ? 'Slot' : 'Slots'})
+                  </h3>
                   <button
                     type="button"
                     className="btn-barista-choice"
@@ -1389,7 +1582,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                     type="button"
                     className="btn-tray-utility"
                     onClick={handleFillRemainingWithSlot1}
-                    disabled={!drinks[0]?.flavourId}
+                    disabled={!drinks[0]?.flavourId || packSize === 1}
                   >
                     <IconCopy /> Fill Remaining with Slot 1
                   </button>
@@ -1621,7 +1814,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
               {fulfillmentMode === 'PICKUP' && (
                 <div className="fulfillment-field-box">
                   <label htmlFor="store-select" className="fulfillment-field-label">
-                    Collection Store Location
+                    Collection Store Location (Toppan Security Branch)
                   </label>
                   <select
                     id="store-select"
@@ -1631,10 +1824,26 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                   >
                     {restaurants.map((r) => (
                       <option key={r.id} value={r.id}>
-                        {r.name} ({r.address || 'Flagship Store'})
+                        {r.name}
                       </option>
                     ))}
                   </select>
+
+                  {selectedRestaurant && (
+                    <div style={{ marginTop: '10px', padding: '12px 14px', background: '#FAF4EC', border: '1px solid #E8D9C5', borderRadius: '12px', fontSize: '12.5px', color: '#7C6053' }}>
+                      <div style={{ fontWeight: 700, color: '#381F15', marginBottom: '3px' }}>
+                        {selectedRestaurant.name}
+                      </div>
+                      <div style={{ fontSize: '12px', lineHeight: 1.45 }}>
+                        {selectedRestaurant.address}
+                      </div>
+                      {selectedRestaurant.contact_number && (
+                        <div style={{ fontSize: '11.5px', marginTop: '5px', color: '#BA724C', fontWeight: 600 }}>
+                          Branch Direct: {selectedRestaurant.contact_number}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <label htmlFor="pickup-time-select" className="fulfillment-field-label" style={{ marginTop: '14px' }}>
                     Estimated Collection Time
