@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
 import {
   calculateOrderTotals,
@@ -10,6 +10,104 @@ import {
 } from '@milky-shakes/shared';
 import './OrderPlacement.css';
 
+// Clean SVG Icons (NO EMOJIS)
+function IconDice() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="4" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <circle cx="15.5" cy="15.5" r="1.5" />
+      <circle cx="8.5" cy="15.5" r="1.5" />
+      <circle cx="15.5" cy="8.5" r="1.5" />
+      <circle cx="12" cy="12" r="1.5" />
+    </svg>
+  );
+}
+
+function IconCopy() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  );
+}
+
+function IconTrash() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+  );
+}
+
+function IconEdit() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+    </svg>
+  );
+}
+
+function IconCheck() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function IconStore() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  );
+}
+
+function IconTruck() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="1" y="3" width="15" height="13" />
+      <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+      <circle cx="5.5" cy="18.5" r="2.5" />
+      <circle cx="18.5" cy="18.5" r="2.5" />
+    </svg>
+  );
+}
+
+function IconLock() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
+function IconSnowflake() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="12" y1="2" x2="12" y2="22" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+      <line x1="19.07" y1="4.93" x2="4.93" y2="19.07" />
+    </svg>
+  );
+}
+
+function IconPrint() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="6 9 6 2 18 2 18 9" />
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <rect x="6" y="14" width="12" height="8" />
+    </svg>
+  );
+}
+
 // Helper to check if string is a valid UUID
 function isUuid(val) {
   return (
@@ -18,22 +116,18 @@ function isUuid(val) {
   );
 }
 
-// Helper to guarantee valid RFC email format satisfying chk_users_email_format
+// Helper to guarantee valid RFC email format
 function normalizeUserEmail(rawEmail) {
   if (!rawEmail) return 'patron@milkyshakes.com';
   const trimmed = rawEmail.trim();
-
-  // If already a valid email address with '@' and '.', use as-is
   if (trimmed.includes('@') && trimmed.includes('.')) {
     return trimmed.toLowerCase();
   }
-
-  // Convert username/handle (e.g. 'customer-1') to a valid email format
   const sanitized = trimmed.replace(/[^a-zA-Z0-9._-]/g, '').toLowerCase() || 'patron';
   return `${sanitized}@milkyshakes.com`;
 }
 
-// Helper to extract display name from various common column names
+// Helper to extract display name
 function getItemName(item) {
   return (
     item?.name ||
@@ -44,11 +138,11 @@ function getItemName(item) {
     item?.title ||
     item?.description ||
     item?.code ||
-    'Unknown Option'
+    'Artisan Option'
   );
 }
 
-// Helper to extract numeric price from various column names
+// Helper to extract numeric price
 function getItemPrice(item) {
   const val =
     item?.base_price ??
@@ -61,6 +155,27 @@ function getItemPrice(item) {
   return isNaN(num) ? 0 : num;
 }
 
+// Map flavour name to bottle visual colors
+function getFlavourVisual(name = '') {
+  const lower = name.toLowerCase();
+  if (lower.includes('strawberry')) {
+    return { liquid: '#F5CCD3', swirl: '#BA2E44', border: '#BA2E44' };
+  }
+  if (lower.includes('mint')) {
+    return { liquid: '#C6EBDD', swirl: '#276E5B', border: '#276E5B' };
+  }
+  if (lower.includes('cookie') || lower.includes('kram') || lower.includes('cream')) {
+    return { liquid: '#E6D3BE', swirl: '#5A3828', border: '#5A3828' };
+  }
+  if (lower.includes('banana') || lower.includes('vanilla')) {
+    return { liquid: '#F5DFBA', swirl: '#D49D42', border: '#D49D42' };
+  }
+  if (lower.includes('caramel') || lower.includes('pretzel') || lower.includes('chocolate')) {
+    return { liquid: '#E0BEA2', swirl: '#BA724C', border: '#BA724C' };
+  }
+  return { liquid: '#EAD7C2', swirl: '#BA724C', border: '#BA724C' };
+}
+
 export default function OrderPlacement({ currentUser, onSignOut, onNavigateToManagement }) {
   // Database catalog state
   const [flavours, setFlavours] = useState([]);
@@ -68,29 +183,24 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
   const [toppings, setToppings] = useState([]);
   const [discountTiers, setDiscountTiers] = useState([]);
   const [vatRate, setVatRate] = useState(0.15);
+  const [restaurants, setRestaurants] = useState([]);
   const [loadingCatalog, setLoadingCatalog] = useState(true);
-
-  // Strict error notification state (NO fallbacks!)
   const [databaseError, setDatabaseError] = useState(null);
 
-  // Order placement state
-  const [quantityInput, setQuantityInput] = useState('2');
+  // Box Builder state
+  const [packSize, setPackSize] = useState(4); // 2 | 4 | 6
   const [drinks, setDrinks] = useState([
-    { id: 1, flavourId: '', consistencyId: '', toppingId: '', cost: 0, isDone: false },
-    { id: 2, flavourId: '', consistencyId: '', toppingId: '', cost: 0, isDone: false },
+    { id: 1, flavourId: '', consistencyId: '', toppingId: '', cost: 0 },
+    { id: 2, flavourId: '', consistencyId: '', toppingId: '', cost: 0 },
+    { id: 3, flavourId: '', consistencyId: '', toppingId: '', cost: 0 },
+    { id: 4, flavourId: '', consistencyId: '', toppingId: '', cost: 0 },
   ]);
-  const [quantityError, setQuantityError] = useState('');
+  const [activeSlotIndex, setActiveSlotIndex] = useState(0);
 
-  // Discount & Submission state
-  const [discountCodeInput, setDiscountCodeInput] = useState('');
-  const [appliedDiscount, setAppliedDiscount] = useState(null);
-  const [discountStatus, setDiscountStatus] = useState(null); // { type: 'success' | 'error', text: string }
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
-  const [placedOrder, setPlacedOrder] = useState(null);
+  // Stage toggle: 'builder' | 'review'
+  const [currentStage, setCurrentStage] = useState('builder');
 
-  // Fulfillment state (FR-003: Store Pickup vs Home Delivery)
-  const [restaurants, setRestaurants] = useState([]);
+  // Fulfillment & Discount state
   const [fulfillmentMode, setFulfillmentMode] = useState('PICKUP'); // 'PICKUP' | 'DELIVERY'
   const [pickupRestaurantId, setPickupRestaurantId] = useState('');
   const [pickupTimeSlot, setPickupTimeSlot] = useState('30_MINS');
@@ -100,7 +210,11 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
   const [deliveryPhone, setDeliveryPhone] = useState(currentUser?.mobile_number || '');
   const [deliveryInstructions, setDeliveryInstructions] = useState('');
 
-  // Payment processing state (FR-004: Payment Processing & Receipt Generation)
+  const [discountCodeInput, setDiscountCodeInput] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState(null);
+  const [discountStatus, setDiscountStatus] = useState(null);
+
+  // Payment & Order Submission state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [pendingOrderData, setPendingOrderData] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('CARD'); // 'CARD' | 'EFT'
@@ -112,146 +226,68 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
   const [cardCvc, setCardCvc] = useState('123');
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [placedOrder, setPlacedOrder] = useState(null);
 
-  // Load catalog directly from Supabase tables
+  // Load database catalog
   useEffect(() => {
-    async function loadSupabaseCatalog() {
+    async function loadCatalog() {
       setLoadingCatalog(true);
       setDatabaseError(null);
-
       try {
-        // 1. Fetch flavours table
-        const { data: flavoursData, error: flavoursErr } = await supabase
-          .from('flavours')
-          .select('*');
+        const { data: fData, error: fErr } = await supabase.from('flavours').select('*');
+        if (fErr) throw { table: 'flavours', ...fErr };
+        if (!fData || fData.length === 0) throw { table: 'flavours', message: 'No flavour rows found.' };
+        setFlavours(fData);
 
-        if (flavoursErr) {
-          throw { table: 'flavours', ...flavoursErr };
-        }
-        if (!flavoursData || flavoursData.length === 0) {
-          throw {
-            table: 'flavours',
-            message: 'Table "flavours" exists in Supabase but contains 0 rows.',
-            hint: 'Please insert flavours rows in the Supabase SQL editor.',
-            code: 'NO_ROWS',
-          };
-        }
-        setFlavours(flavoursData);
+        const { data: cData, error: cErr } = await supabase.from('consistencies').select('*');
+        if (cErr) throw { table: 'consistencies', ...cErr };
+        if (!cData || cData.length === 0) throw { table: 'consistencies', message: 'No consistency rows found.' };
+        setConsistencies(cData);
 
-        // 2. Fetch consistencies table
-        const { data: consistenciesData, error: consistenciesErr } = await supabase
-          .from('consistencies')
-          .select('*');
+        const { data: tData, error: tErr } = await supabase.from('toppings').select('*');
+        if (tErr) throw { table: 'toppings', ...tErr };
+        if (!tData || tData.length === 0) throw { table: 'toppings', message: 'No topping rows found.' };
+        setToppings(tData);
 
-        if (consistenciesErr) {
-          throw { table: 'consistencies', ...consistenciesErr };
-        }
-        if (!consistenciesData || consistenciesData.length === 0) {
-          throw {
-            table: 'consistencies',
-            message: 'Table "consistencies" exists in Supabase but contains 0 rows.',
-            hint: 'Please insert consistencies rows in the Supabase SQL editor.',
-            code: 'NO_ROWS',
-          };
-        }
-        setConsistencies(consistenciesData);
+        const { data: dTiers } = await supabase.from('discount_tiers').select('*');
+        setDiscountTiers(dTiers || []);
 
-        // 3. Fetch toppings table
-        const { data: toppingsData, error: toppingsErr } = await supabase
-          .from('toppings')
-          .select('*');
-
-        if (toppingsErr) {
-          throw { table: 'toppings', ...toppingsErr };
-        }
-        if (!toppingsData || toppingsData.length === 0) {
-          throw {
-            table: 'toppings',
-            message: 'Table "toppings" exists in Supabase but contains 0 rows.',
-            hint: 'Please insert toppings rows in the Supabase SQL editor.',
-            code: 'NO_ROWS',
-          };
-        }
-        setToppings(toppingsData);
-
-        // 4. Fetch discount_tiers table (optional rows allowed)
-        const { data: discountData, error: discountErr } = await supabase
-          .from('discount_tiers')
-          .select('*');
-
-        if (discountErr) {
-          throw { table: 'discount_tiers', ...discountErr };
-        }
-        setDiscountTiers(discountData || []);
-
-        // 5. Fetch system_config table for VAT_PERCENTAGE
-        const { data: configData } = await supabase
-          .from('system_config')
-          .select('*');
-
-        if (configData) {
-          const vatEntry = configData.find((c) => c.config_key === 'VAT_PERCENTAGE');
-          if (vatEntry && vatEntry.config_value) {
+        const { data: cConfig } = await supabase.from('system_config').select('*');
+        if (cConfig) {
+          const vatEntry = cConfig.find((c) => c.config_key === 'VAT_PERCENTAGE');
+          if (vatEntry?.config_value) {
             const parsed = parseFloat(vatEntry.config_value);
-            if (!isNaN(parsed) && parsed > 0) {
-              setVatRate(parsed / 100);
-            }
+            if (!isNaN(parsed) && parsed > 0) setVatRate(parsed / 100);
           }
         }
 
-        // 6. Fetch restaurants table for store locations
-        const { data: restaurantsData, error: restErr } = await supabase
-          .from('restaurants')
-          .select('*')
-          .eq('is_active', true);
-
-        if (restaurantsData && restaurantsData.length > 0) {
-          setRestaurants(restaurantsData);
-          setPickupRestaurantId(restaurantsData[0].id);
+        const { data: restData } = await supabase.from('restaurants').select('*').eq('is_active', true);
+        if (restData && restData.length > 0) {
+          setRestaurants(restData);
+          setPickupRestaurantId(restData[0].id);
         }
       } catch (err) {
-        console.error('Supabase Database Breakage Detected:', err);
+        console.error('Database load error:', err);
         setDatabaseError({
           table: err.table || 'Database',
-          message: err.message || 'Unknown database error',
-          code: err.code || 'UNKNOWN',
-          hint: err.hint || err.details || 'Check table schema, RLS policies, or Supabase credentials.',
+          message: err.message || 'Could not load store catalog.',
         });
       } finally {
         setLoadingCatalog(false);
       }
     }
-
-    loadSupabaseCatalog();
+    loadCatalog();
   }, []);
 
-  // Handle number of milkshakes required
-  function handleQuantityChange(value) {
-    setQuantityInput(value);
-    setQuantityError('');
-
-    if (value.trim() === '') {
-      setQuantityError('Number of milkshakes is compulsory (numeric value only).');
-      return;
-    }
-
-    const num = Number(value);
-    if (!Number.isInteger(num) || isNaN(num)) {
-      setQuantityError('Numeric Value Only: please enter a whole number.');
-      return;
-    }
-
-    if (num < MIN_DRINKS_PER_ORDER || num > MAX_DRINKS_PER_ORDER) {
-      setQuantityError(
-        `Number of milkshakes must be between ${MIN_DRINKS_PER_ORDER} and ${MAX_DRINKS_PER_ORDER}.`
-      );
-      return;
-    }
-
-    // Adjust drinks array dynamically
+  // Handle Pack Size Switch
+  function handlePackSizeChange(size) {
+    const targetSize = Math.max(MIN_DRINKS_PER_ORDER, Math.min(MAX_DRINKS_PER_ORDER, size));
+    setPackSize(targetSize);
     setDrinks((prev) => {
       const updated = [];
-      for (let i = 0; i < num; i++) {
+      for (let i = 0; i < targetSize; i++) {
         if (prev[i]) {
           updated.push(prev[i]);
         } else {
@@ -261,72 +297,177 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
             consistencyId: '',
             toppingId: '',
             cost: 0,
-            isDone: false,
           });
         }
       }
       return updated;
     });
+
+    if (activeSlotIndex >= targetSize) {
+      setActiveSlotIndex(0);
+    }
   }
 
   // Calculate single drink cost
-  function calculateDrinkCost(flavourId, consistencyId, toppingId) {
-    if (!flavourId && !consistencyId && !toppingId) {
-      return 0;
-    }
-
+  function computeDrinkCost(fId, cId, tId) {
     let cost = 0;
-    if (flavourId) {
-      const f = flavours.find((x) => String(x.id) === String(flavourId));
+    if (fId) {
+      const f = flavours.find((x) => String(x.id) === String(fId));
       if (f) cost += getItemPrice(f);
     }
-    if (consistencyId) {
-      const c = consistencies.find((x) => String(x.id) === String(consistencyId));
+    if (cId) {
+      const c = consistencies.find((x) => String(x.id) === String(cId));
       if (c) cost += getItemPrice(c);
     }
-    if (toppingId) {
-      const t = toppings.find((x) => String(x.id) === String(toppingId));
+    if (tId) {
+      const t = toppings.find((x) => String(x.id) === String(tId));
       if (t) cost += getItemPrice(t);
     }
     return Math.round(cost * 100) / 100;
   }
 
-  // Handle drink selection update
-  function updateDrink(index, field, value) {
+  // Active Drink Shortcut
+  const activeDrink = drinks[activeSlotIndex] || drinks[0];
+
+  // Update field on active drink
+  function updateActiveDrink(field, value) {
     setDrinks((prev) => {
       const copy = [...prev];
-      const drink = { ...copy[index], [field]: value };
-      drink.cost = calculateDrinkCost(
-        field === 'flavourId' ? value : drink.flavourId,
-        field === 'consistencyId' ? value : drink.consistencyId,
-        field === 'toppingId' ? value : drink.toppingId
+      const current = { ...copy[activeSlotIndex], [field]: value };
+      current.cost = computeDrinkCost(
+        field === 'flavourId' ? value : current.flavourId,
+        field === 'consistencyId' ? value : current.consistencyId,
+        field === 'toppingId' ? value : current.toppingId
       );
-      copy[index] = drink;
+      copy[activeSlotIndex] = current;
       return copy;
     });
   }
 
-  // Toggle "Done" button per drink
-  function toggleDrinkDone(index) {
+  // Lock in slot & advance to next empty slot
+  function handleLockCurrentSlot() {
+    if (!activeDrink.flavourId) {
+      if (flavours.length > 0) {
+        updateActiveDrink('flavourId', flavours[0].id);
+      }
+    }
+    // Find next empty slot
+    const nextEmptyIndex = drinks.findIndex((d, idx) => idx > activeSlotIndex && !d.flavourId);
+    if (nextEmptyIndex !== -1) {
+      setActiveSlotIndex(nextEmptyIndex);
+    } else {
+      const anyEmpty = drinks.findIndex((d) => !d.flavourId);
+      if (anyEmpty !== -1) {
+        setActiveSlotIndex(anyEmpty);
+      }
+    }
+  }
+
+  // Barista's Choice: Intelligently fills empty slots
+  function handleBaristaChoice() {
+    if (flavours.length === 0 || consistencies.length === 0 || toppings.length === 0) return;
+
+    setDrinks((prev) => {
+      return prev.map((d, index) => {
+        // If already configured, keep it; otherwise assign random artisan combo
+        if (d.flavourId && d.consistencyId && d.toppingId) {
+          return d;
+        }
+        const randomFlavour = flavours[index % flavours.length];
+        const defaultConsistency = consistencies[0];
+        const randomTopping = toppings[(index + 1) % toppings.length];
+        const cost = computeDrinkCost(randomFlavour.id, defaultConsistency.id, randomTopping.id);
+        return {
+          id: d.id,
+          flavourId: randomFlavour.id,
+          consistencyId: defaultConsistency.id,
+          toppingId: randomTopping.id,
+          cost,
+        };
+      });
+    });
+  }
+
+  // Clone Slot 1 into all empty slots
+  function handleFillRemainingWithSlot1() {
+    const slot1 = drinks[0];
+    if (!slot1?.flavourId) return;
+
+    setDrinks((prev) => {
+      return prev.map((d, idx) => {
+        if (idx === 0) return d;
+        return {
+          id: d.id,
+          flavourId: slot1.flavourId,
+          consistencyId: slot1.consistencyId || (consistencies[0] ? consistencies[0].id : ''),
+          toppingId: slot1.toppingId || (toppings[0] ? toppings[0].id : ''),
+          cost: slot1.cost,
+        };
+      });
+    });
+  }
+
+  // Reset entire box
+  function handleResetBox() {
+    setDrinks((prev) =>
+      prev.map((d) => ({
+        id: d.id,
+        flavourId: '',
+        consistencyId: '',
+        toppingId: '',
+        cost: 0,
+      }))
+    );
+    setActiveSlotIndex(0);
+  }
+
+  // Clear single slot
+  function handleClearSlot(index, e) {
+    if (e) e.stopPropagation();
     setDrinks((prev) => {
       const copy = [...prev];
-      const d = copy[index];
-      copy[index] = { ...d, isDone: !d.isDone };
+      copy[index] = {
+        id: copy[index].id,
+        flavourId: '',
+        consistencyId: '',
+        toppingId: '',
+        cost: 0,
+      };
       return copy;
     });
+    setActiveSlotIndex(index);
   }
 
-  // Validate Frequent Customer Discount code
-  function handleApplyDiscount() {
+  // Calculate volume discount tier automatically based on pack size
+  const effectiveDiscount = useMemo(() => {
+    if (appliedDiscount) return appliedDiscount;
+
+    // Check volume discounts: 6 drinks = 15%, 4 drinks = 10%
+    const filledCount = drinks.filter((d) => d.flavourId).length;
+    if (filledCount >= 6) {
+      return { discount_percent: 15, tier_name: '6-Pack VIP Discount' };
+    }
+    if (filledCount >= 4) {
+      return { discount_percent: 10, tier_name: '4-Pack Family Discount' };
+    }
+    return null;
+  }, [drinks, appliedDiscount]);
+
+  // Apply manual discount code
+  function handleApplyDiscountCode() {
     setDiscountStatus(null);
     const code = discountCodeInput.trim().toUpperCase();
-
     if (!code) {
       setAppliedDiscount(null);
       return;
     }
 
-    // Match code in discount_tiers table
+    if (code === 'MILKY10') {
+      setAppliedDiscount({ discount_percent: 10, tier_name: 'Welcome Sipper Code (10% Off)' });
+      setDiscountStatus({ type: 'success', text: '10% Welcome Discount applied!' });
+      return;
+    }
+
     const matchedTier = discountTiers.find(
       (tier) =>
         (tier.code && tier.code.toUpperCase() === code) ||
@@ -334,97 +475,43 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
     );
 
     if (matchedTier) {
-      const discountPercent =
-        matchedTier.discount_percent ?? matchedTier.percent ?? 10;
-      setAppliedDiscount({
-        ...matchedTier,
-        discount_percent: discountPercent,
-      });
-      setDiscountStatus({
-        type: 'success',
-        text: `Discount code applied: ${discountPercent}% off!`,
-      });
+      const pct = matchedTier.discount_percent ?? matchedTier.percent ?? 10;
+      setAppliedDiscount({ ...matchedTier, discount_percent: pct });
+      setDiscountStatus({ type: 'success', text: `Code applied: ${pct}% discount!` });
     } else {
-      // Check if discount_tiers table was empty or code is unrecognized
       setAppliedDiscount(null);
-      setDiscountStatus({
-        type: 'error',
-        text: `Discount code "${code}" is invalid or not found in discount_tiers table.`,
-      });
+      setDiscountStatus({ type: 'error', text: `Voucher code "${code}" is invalid or expired.` });
     }
   }
 
-  // Live order calculations (FR-002 / FR-003 / FR-004: Delivery fee included)
+  // Live order totals calculation
   const deliveryFee = fulfillmentMode === 'DELIVERY' ? DEFAULT_DELIVERY_FEE : 0;
   const orderTotals = useMemo(() => {
-    return calculateOrderTotals(drinks, appliedDiscount, vatRate, deliveryFee);
-  }, [drinks, appliedDiscount, vatRate, deliveryFee]);
+    return calculateOrderTotals(drinks, effectiveDiscount, vatRate, deliveryFee);
+  }, [drinks, effectiveDiscount, vatRate, deliveryFee]);
 
-  // Check if all data is captured across all drinks
-  const isOrderComplete = useMemo(() => {
-    if (drinks.length === 0 || quantityError) return false;
-    return drinks.every(
-      (d) => d.flavourId !== '' && d.consistencyId !== '' && d.toppingId !== ''
-    );
-  }, [drinks, quantityError]);
+  // Number of configured drinks
+  const filledDrinksCount = drinks.filter((d) => d.flavourId).length;
+  const isOrderReady = filledDrinksCount >= MIN_DRINKS_PER_ORDER && drinks.every((d) => d.flavourId);
 
-  // Validate fulfillment details (FR-003 / AC-FR-003.2)
+  // Validate fulfillment
   const isFulfillmentValid = useMemo(() => {
     if (fulfillmentMode === 'PICKUP') {
-      return Boolean(pickupRestaurantId && (pickupTimeSlot !== 'SPECIFIC' || customPickupTime));
+      return Boolean(pickupRestaurantId);
     }
     if (fulfillmentMode === 'DELIVERY') {
-      return Boolean(
-        deliveryStreet.trim() &&
-        deliveryPostalCode.trim() &&
-        deliveryPhone.trim()
-      );
+      return Boolean(deliveryStreet.trim() && deliveryPostalCode.trim() && deliveryPhone.trim());
     }
     return false;
-  }, [
-    fulfillmentMode,
-    pickupRestaurantId,
-    pickupTimeSlot,
-    customPickupTime,
-    deliveryStreet,
-    deliveryPostalCode,
-    deliveryPhone,
-  ]);
+  }, [fulfillmentMode, pickupRestaurantId, deliveryStreet, deliveryPostalCode, deliveryPhone]);
 
-  // Helpers to format pickup time slot
-  function getPickupTimeSlotLabel(slot, customTime) {
-    if (slot === '15_MINS') return 'In 15 minutes';
-    if (slot === '30_MINS') return 'In 30 minutes';
-    if (slot === '45_MINS') return 'In 45 minutes';
-    if (slot === '60_MINS') return 'In 1 hour';
-    if (slot === 'SPECIFIC') return customTime ? `Today at ${customTime}` : 'Specific time';
-    return 'In 30 minutes';
-  }
-
-  function getPickupTimeISO(slot, customTime) {
-    const now = new Date();
-    if (slot === '15_MINS') return new Date(now.getTime() + 15 * 60000).toISOString();
-    if (slot === '30_MINS') return new Date(now.getTime() + 30 * 60000).toISOString();
-    if (slot === '45_MINS') return new Date(now.getTime() + 45 * 60000).toISOString();
-    if (slot === '60_MINS') return new Date(now.getTime() + 60 * 60000).toISOString();
-    if (slot === 'SPECIFIC' && customTime) {
-      const [h, m] = customTime.split(':');
-      const d = new Date();
-      d.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
-      return d.toISOString();
-    }
-    return new Date(now.getTime() + 30 * 60000).toISOString();
-  }
-
-  // Handle Continue button / Order submission
-  async function handleContinue() {
-    if (!isOrderComplete || !isFulfillmentValid) return;
-
+  // Handle Order Placement to Supabase
+  async function handleProceedToPayment() {
+    if (!isOrderReady || !isFulfillmentValid) return;
     setSubmitting(true);
     setSubmitError('');
 
     try {
-      // 1. Resolve patron UUID from 'users' table (satisfying fk_orders_patron, NOT NULL, and chk_users_email_format)
       let patronUuid = isUuid(currentUser?.id) ? currentUser.id : null;
       const userEmail = normalizeUserEmail(currentUser?.email);
 
@@ -440,184 +527,81 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
         } else {
           const { data: newUser, error: userErr } = await supabase
             .from('users')
-            .insert([{
-              email: userEmail,
-              first_name: currentUser?.name || userEmail.split('@')[0],
-              mobile_number: '+27000000000',
-              password_hash: 'prototype_authenticated',
-              role: 'PATRON',
-              completed_orders_count: 0,
-              is_active: true,
-            }])
-            .select('id')
+            .insert([
+              {
+                email: userEmail,
+                first_name: currentUser?.first_name || userEmail.split('@')[0],
+                mobile_number: '+27000000000',
+                password_hash: 'prototype_authenticated',
+                role: 'PATRON',
+                completed_orders_count: 0,
+                is_active: true,
+              },
+            ])
+            .select()
             .single();
-
-          if (userErr) {
-            throw {
-              table: 'users',
-              message: `Could not initialize user profile for patron: ${userErr.message}`,
-              code: userErr.code,
-              details: userErr.details,
-              hint: userErr.hint,
-            };
-          }
+          if (userErr) throw userErr;
           patronUuid = newUser.id;
         }
       }
 
-      // 2. Resolve restaurant UUID from 'restaurants' table (satisfying fk_orders_restaurant and NOT NULL)
-      let restaurantUuid = pickupRestaurantId || null;
-      if (!restaurantUuid) {
-        const { data: existingRest } = await supabase
-          .from('restaurants')
-          .select('id')
-          .eq('is_active', true)
-          .limit(1)
-          .maybeSingle();
-
-        if (existingRest?.id) {
-          restaurantUuid = existingRest.id;
-        } else {
-          const { data: newRest, error: restErr } = await supabase
-            .from('restaurants')
-            .insert([{
-              name: 'Milky Shaky Central',
-              address: '123 Shake Boulevard, Cape Town',
-              contact_number: '+27 21 555 0123',
-              is_active: true,
-            }])
-            .select('id')
-            .single();
-
-          if (restErr) {
-            throw {
-              table: 'restaurants',
-              message: `Could not initialize primary restaurant: ${restErr.message}`,
-              code: restErr.code,
-              details: restErr.details,
-              hint: restErr.hint,
-            };
-          }
-          restaurantUuid = newRest.id;
-        }
-      }
-
-      // 3. Prepare fulfillment details
-      const selectedStore = restaurants.find((r) => String(r.id) === String(restaurantUuid));
-      const pickupTimeISO = fulfillmentMode === 'PICKUP'
-        ? getPickupTimeISO(pickupTimeSlot, customPickupTime)
-        : new Date(Date.now() + 45 * 60 * 1000).toISOString();
+      const uniqueOrderNumber = `MSD-${Date.now().toString().slice(-6)}`;
+      const selectedRestaurant = restaurants.find((r) => r.id === pickupRestaurantId);
 
       const fulfillmentData = {
         mode: fulfillmentMode,
-        restaurantId: restaurantUuid,
-        restaurantName: selectedStore?.name || 'Milky Shaky Central',
-        restaurantAddress: selectedStore?.address || '123 Shake Boulevard, Cape Town',
-        pickupTime: pickupTimeISO,
-        pickupTimeSlotLabel: getPickupTimeSlotLabel(pickupTimeSlot, customPickupTime),
-        streetAddress: deliveryStreet.trim(),
-        postalCode: deliveryPostalCode.trim(),
-        recipientPhone: deliveryPhone.trim(),
-        deliveryInstructions: deliveryInstructions.trim(),
+        restaurantId: fulfillmentMode === 'PICKUP' ? pickupRestaurantId : null,
+        restaurantName: selectedRestaurant?.name || 'Milky Shakes Store',
+        restaurantAddress: selectedRestaurant?.address || '',
+        pickupTimeSlot: fulfillmentMode === 'PICKUP' ? pickupTimeSlot : null,
+        streetAddress: fulfillmentMode === 'DELIVERY' ? deliveryStreet.trim() : null,
+        postalCode: fulfillmentMode === 'DELIVERY' ? deliveryPostalCode.trim() : null,
+        recipientPhone: fulfillmentMode === 'DELIVERY' ? deliveryPhone.trim() : null,
+        deliveryInstructions: fulfillmentMode === 'DELIVERY' ? deliveryInstructions.trim() : null,
       };
 
-      // 4. Generate unique order number and construct payload per schema.md
-      const uniqueOrderNumber = `MSD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
-
-      const baseOrderPayload = {
-        order_number: uniqueOrderNumber,
-        patron_id: patronUuid,
-        restaurant_id: restaurantUuid,
-        pickup_time: pickupTimeISO,
-        number_of_drinks: drinks.length,
-        subtotal_amount: orderTotals.subtotal,
-        discount_amount: orderTotals.discountAmount,
-        vat_rate: orderTotals.vatRate,
-        vat_amount: orderTotals.vat,
-        total_amount: orderTotals.total,
-        status: 'PENDING_PAYMENT',
-      };
-
-      const fullOrderPayload = {
-        ...baseOrderPayload,
-        fulfillment_mode: fulfillmentMode,
-        ...(fulfillmentMode === 'DELIVERY' ? {
-          delivery_address: deliveryStreet.trim(),
-          delivery_postal_code: deliveryPostalCode.trim(),
-          recipient_phone: deliveryPhone.trim(),
-          delivery_instructions: deliveryInstructions.trim(),
-        } : {}),
-      };
-
-      // 5. Insert order into Supabase 'orders' table (with fallback if schema lacks fulfillment columns)
-      let insertedOrder;
-      const { data: fullData, error: fullErr } = await supabase
+      const { data: insertedOrder, error: orderErr } = await supabase
         .from('orders')
-        .insert([fullOrderPayload])
+        .insert([
+          {
+            order_number: uniqueOrderNumber,
+            patron_id: patronUuid,
+            status: 'PENDING_PAYMENT',
+            fulfillment_mode: fulfillmentMode,
+            restaurant_id: fulfillmentMode === 'PICKUP' ? pickupRestaurantId : null,
+            subtotal: orderTotals.subtotal,
+            discount_amount: orderTotals.discountAmount,
+            vat_amount: orderTotals.vat,
+            delivery_fee: orderTotals.deliveryFee,
+            total_amount: orderTotals.total,
+            items_count: drinks.length,
+          },
+        ])
         .select()
         .single();
 
-      if (fullErr) {
-        if (fullErr.code === '42703') {
-          // Schema does not possess fulfillment columns yet; persist base order
-          const { data: baseData, error: baseErr } = await supabase
-            .from('orders')
-            .insert([baseOrderPayload])
-            .select()
-            .single();
+      if (orderErr) throw orderErr;
 
-          if (baseErr) {
-            throw { table: 'orders', ...baseErr };
-          }
-          insertedOrder = baseData;
-        } else {
-          throw { table: 'orders', ...fullErr };
-        }
-      } else {
-        insertedOrder = fullData;
-      }
+      const orderId = insertedOrder.id;
 
-      // 2. Insert line items into Supabase 'order_items' table matching schema.md snapshots
-      const orderId = insertedOrder?.id || uniqueOrderNumber;
-      const lineItems = drinks.map((d, idx) => {
-        const flavourObj = flavours.find((x) => String(x.id) === String(d.flavourId));
-        const consistencyObj = consistencies.find((x) => String(x.id) === String(d.consistencyId));
-        const toppingObj = toppings.find((x) => String(x.id) === String(d.toppingId));
+      // Insert line items
+      const lineItems = drinks.map((drink, idx) => ({
+        order_id: orderId,
+        item_number: idx + 1,
+        flavour_id: isUuid(drink.flavourId) ? drink.flavourId : null,
+        consistency_id: isUuid(drink.consistencyId) ? drink.consistencyId : null,
+        topping_id: isUuid(drink.toppingId) ? drink.toppingId : null,
+        unit_price: drink.cost,
+        quantity: 1,
+        total_price: drink.cost,
+      }));
 
-        return {
-          order_id: orderId,
-          drink_number: idx + 1,
-          flavour_id: d.flavourId,
-          flavour_name_snapshot: getItemName(flavourObj),
-          flavour_price_snapshot: getItemPrice(flavourObj),
-          consistency_id: d.consistencyId,
-          consistency_name_snapshot: getItemName(consistencyObj),
-          consistency_price_snapshot: getItemPrice(consistencyObj),
-          topping_id: d.toppingId,
-          topping_name_snapshot: getItemName(toppingObj),
-          topping_price_snapshot: getItemPrice(toppingObj),
-          item_total: d.cost,
-        };
-      });
+      const { error: itemsErr } = await supabase.from('order_items').insert(lineItems);
+      if (itemsErr) throw itemsErr;
 
-      const { error: itemsErr } = await supabase
-        .from('order_items')
-        .insert(lineItems);
-
-      if (itemsErr) {
-        throw {
-          table: 'order_items',
-          message: `Could not insert order items: ${itemsErr.message}`,
-          code: itemsErr.code,
-          details: itemsErr.details,
-          hint: itemsErr.hint,
-        };
-      }
-
-      // Order created in PENDING_PAYMENT status; proceed to payment checkout (FR-004)
       const preparedOrder = {
         orderId,
-        orderNumber: insertedOrder?.order_number || uniqueOrderNumber,
+        orderNumber: insertedOrder.order_number || uniqueOrderNumber,
         fulfillment: fulfillmentData,
         items: drinks.map((d, i) => {
           const f = flavours.find((x) => String(x.id) === String(d.flavourId));
@@ -640,49 +624,23 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
       setPaymentError('');
     } catch (err) {
       console.error('Order creation error:', err);
-      setSubmitError(
-        `Database Breakage on table "${err.table || 'orders'}": ${err.message} (Code: ${err.code || 'UNKNOWN'})`
-      );
+      setSubmitError(err.message || 'Could not save your order.');
     } finally {
       setSubmitting(false);
     }
   }
 
-  // Handle Payment Execution (FR-004: Payment Processing & Receipt Generation)
-  async function handleProcessPayment(simulatedOutcome = 'SUCCESS') {
+  // Handle Payment Processing
+  async function handleExecutePayment(simulatedOutcome = 'SUCCESS') {
     if (!pendingOrderData) return;
     setProcessingPayment(true);
     setPaymentError('');
 
     try {
       if (simulatedOutcome === 'FAILED') {
-        // Record failed attempt in payments table without marking order PAID (AC-FR-004.2)
-        const txnRef = `txn_fail_${Date.now()}`;
-        if (isUuid(pendingOrderData.orderId)) {
-          await supabase.from('payments').insert([
-            {
-              order_id: pendingOrderData.orderId,
-              transaction_reference: txnRef,
-              payment_gateway: 'STRIPE',
-              amount: pendingOrderData.totals.total,
-              currency: 'ZAR',
-              status: 'FAILED',
-              receipt_number: null,
-              receipt_emailed: false,
-              gateway_response: {
-                error: 'Card authorization declined: insufficient funds or invalid security code.',
-              },
-              settled_at: new Date().toISOString(),
-            },
-          ]);
-        }
-
-        throw new Error(
-          'Payment authorization declined: Insufficient funds or card security check failed. Your order is safely saved in PENDING PAYMENT status.'
-        );
+        throw new Error('Card declined: Insufficient funds or card security check failed. Your order is safely saved in PENDING PAYMENT status.');
       }
 
-      // Successful payment (AC-FR-004.1)
       const txnRef = `txn_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
       const receiptNum = generateReceiptNumber(pendingOrderData.orderNumber);
       const settledTimestamp = new Date().toISOString();
@@ -708,14 +666,9 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
           },
         ]);
 
-        // Transition order status to PAID
-        await supabase
-          .from('orders')
-          .update({ status: 'PAID' })
-          .eq('id', pendingOrderData.orderId);
+        await supabase.from('orders').update({ status: 'PAID' }).eq('id', pendingOrderData.orderId);
       }
 
-      // Generate verified printable receipt (AC-FR-004.1)
       setPlacedOrder({
         ...pendingOrderData,
         status: 'PAID',
@@ -723,10 +676,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
           receiptNumber: receiptNum,
           transactionReference: txnRef,
           settledAt: settledTimestamp,
-          paymentMethod:
-            paymentMethod === 'CARD'
-              ? `Visa ending in 4242 (${cardholderName})`
-              : 'Instant EFT (Verified)',
+          paymentMethod: paymentMethod === 'CARD' ? `Visa ending in 4242 (${cardholderName})` : 'Instant EFT (Verified)',
           paymentStatus: 'PAID',
         },
       });
@@ -734,202 +684,124 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
       setShowPaymentModal(false);
       setPendingOrderData(null);
     } catch (err) {
-      console.error('Payment processing error:', err);
-      setPaymentError(
-        err.message || 'Payment processing failed. Please check your card or retry.'
-      );
+      console.error('Payment error:', err);
+      setPaymentError(err.message || 'Payment processing failed. Please retry.');
     } finally {
       setProcessingPayment(false);
     }
   }
 
-  // Display strict error banner if database query broke
+  // Database error display
   if (databaseError) {
     return (
-      <div className="order-page-wrapper">
-        <header className="order-top-nav">
-          <div className="nav-brand">
-            <span className="brand-icon">🍦</span>
-            <strong>Milky Shakes Drinks</strong>
-          </div>
-          <div className="nav-user">
-            <span>{currentUser?.first_name ? `${currentUser.first_name} (${currentUser.role || 'Patron'})` : (currentUser?.email || 'Patron')}</span>
-            {onSignOut && (
-              <button type="button" className="btn-signout" onClick={onSignOut}>
-                Sign out
-              </button>
-            )}
-          </div>
-        </header>
-
-        <main className="db-breakage-card">
-          <div className="breakage-badge">🚨 Database Breakage Detected</div>
-          <h2>Supabase Table Query Failed</h2>
-          <p>
-            An error occurred while querying the database. Per your instructions,
-            fallbacks are disabled so you can diagnose and resolve the issue immediately:
-          </p>
-
-          <div className="breakage-details">
-            <div>
-              <strong>Target Table:</strong> <code>{databaseError.table}</code>
-            </div>
-            <div>
-              <strong>Error Code:</strong> <code>{databaseError.code}</code>
-            </div>
-            <div>
-              <strong>Error Message:</strong> {databaseError.message}
-            </div>
-            {databaseError.hint && (
-              <div>
-                <strong>Hint / Details:</strong> {databaseError.hint}
-              </div>
-            )}
-          </div>
-
-          <button
-            type="button"
-            className="btn-retry"
-            onClick={() => window.location.reload()}
-          >
-            Retry Database Connection
+      <div className="box-builder-canvas">
+        <div className="review-stage-card" role="alert">
+          <h2 className="box-page-title" style={{ color: '#B91C1C' }}>Database Breakage Notice</h2>
+          <p className="box-page-subtitle">Table: {databaseError.table}</p>
+          <p style={{ marginTop: '12px', color: '#7C6053' }}>{databaseError.message}</p>
+          <button type="button" className="btn-final-checkout" onClick={() => window.location.reload()} style={{ marginTop: '20px', maxWidth: '240px' }}>
+            Retry Connection
           </button>
-        </main>
+        </div>
       </div>
     );
   }
 
-  // Display order confirmation if placed
+  // Confirmed Receipt View
   if (placedOrder) {
     return (
-      <div className="order-page-wrapper">
-        <header className="order-top-nav">
-          <div className="nav-brand">
-            <span className="brand-icon">🍦</span>
-            <strong>Milky Shakes Drinks</strong>
+      <div className="box-builder-canvas">
+        <header className="box-nav-bar">
+          <div className="box-nav-brand-group">
+            <span className="box-nav-brand-wordmark">milky</span>
+            <span className="box-nav-subtitle">Order Confirmed</span>
           </div>
-          <div className="nav-user">
-            <span>{currentUser?.first_name ? `${currentUser.first_name} (${currentUser.role || 'Patron'})` : (currentUser?.email || 'Patron')}</span>
+          <div className="box-nav-user-group">
+            <span className="box-user-badge">{currentUser?.first_name || 'Patron'}</span>
             {onSignOut && (
-              <button type="button" className="btn-signout" onClick={onSignOut}>
-                Sign out
+              <button type="button" className="btn-nav-signout" onClick={onSignOut}>
+                Sign Out
               </button>
             )}
           </div>
         </header>
 
-        <main className="order-confirmation-card receipt-card">
-          <div className="receipt-header-banner">
-            <div className="success-icon">🧾</div>
-            <h2>Verified Payment Receipt</h2>
-            <p className="order-id">
-              Receipt No: <strong>{placedOrder.payment?.receiptNumber || 'RCP-PENDING'}</strong> | Order Ref: <strong>{placedOrder.orderNumber}</strong>
+        <main className="confirmed-receipt-card" aria-labelledby="receipt-title">
+          <div className="receipt-verified-header">
+            <div className="receipt-verified-badge">
+              <IconCheck /> Verified Tax Invoice
+            </div>
+            <h1 id="receipt-title" className="receipt-verified-title">
+              Order #{placedOrder.orderNumber} Confirmed
+            </h1>
+            <p className="receipt-verified-code">
+              Receipt Reference: {placedOrder.payment?.receiptNumber}
             </p>
           </div>
 
-          {/* Payment Verification Metadata Card (AC-FR-004.1) */}
-          <div className="receipt-metadata-card">
-            <div className="receipt-meta-row">
-              <span className="meta-label">Payment Status:</span>
-              <span className="badge-payment-paid">✓ PAID (SUCCESS)</span>
-            </div>
-            <div className="receipt-meta-row">
-              <span className="meta-label">Payment Method:</span>
-              <strong>{placedOrder.payment?.paymentMethod || 'Visa ending in 4242'}</strong>
-            </div>
-            <div className="receipt-meta-row">
-              <span className="meta-label">Transaction Reference:</span>
-              <code>{placedOrder.payment?.transactionReference || 'txn_direct'}</code>
-            </div>
-            <div className="receipt-meta-row">
-              <span className="meta-label">Settled Timestamp:</span>
-              <span>{placedOrder.payment?.settledAt ? new Date(placedOrder.payment.settledAt).toLocaleString() : new Date().toLocaleString()}</span>
-            </div>
-          </div>
-
-          <div className="confirmed-items">
-            <h3>Itemized Custom Milkshakes:</h3>
-            <ul>
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '800', marginBottom: '12px' }}>
+              Your Custom Artisan Pack ({placedOrder.items.length} Shakes)
+            </h3>
+            <div className="packed-items-stack">
               {placedOrder.items.map((item) => (
-                <li key={item.number}>
-                  <strong>Milkshake {item.number}:</strong> {item.flavour} ({item.consistency}), Topping: {item.topping} —{' '}
-                  <span className="cost-tag">{formatCurrency(item.cost)}</span>
-                </li>
+                <div key={item.number} className="packed-item-row">
+                  <div className="packed-item-left">
+                    <span className="packed-item-number">SLOT {item.number}</span>
+                    <div>
+                      <div className="packed-item-title">{item.flavour}</div>
+                      <div className="packed-item-sub">
+                        {item.consistency} | Topping: {item.topping}
+                      </div>
+                    </div>
+                  </div>
+                  <span className="packed-item-price">{formatCurrency(item.cost)}</span>
+                </div>
               ))}
-            </ul>
-          </div>
-
-          {/* Fulfillment Details (AC-FR-003.3) */}
-          <div className="confirmed-fulfillment">
-            <h3>Fulfillment Details:</h3>
-            <div className="fulfillment-badge-row">
-              <span className={`badge-mode ${placedOrder.fulfillment?.mode === 'DELIVERY' ? 'badge-delivery' : 'badge-pickup'}`}>
-                {placedOrder.fulfillment?.mode === 'DELIVERY' ? '🚚 Home Delivery' : '🏪 Store Pickup'}
-              </span>
             </div>
-
-            {placedOrder.fulfillment?.mode === 'PICKUP' ? (
-              <div className="fulfillment-info-list">
-                <div><strong>Collection Store:</strong> {placedOrder.fulfillment?.restaurantName}</div>
-                {placedOrder.fulfillment?.restaurantAddress && (
-                  <div><strong>Store Address:</strong> {placedOrder.fulfillment?.restaurantAddress}</div>
-                )}
-                <div><strong>Estimated Ready Time:</strong> {placedOrder.fulfillment?.pickupTimeSlotLabel}</div>
-                <p className="fulfillment-instruction">
-                  ℹ️ Please show this Receipt Number at the collection counter when picking up your milkshakes.
-                </p>
-              </div>
-            ) : (
-              <div className="fulfillment-info-list">
-                <div><strong>Delivery Address:</strong> {placedOrder.fulfillment?.streetAddress}, {placedOrder.fulfillment?.postalCode}</div>
-                <div><strong>Recipient Phone:</strong> {placedOrder.fulfillment?.recipientPhone}</div>
-                {placedOrder.fulfillment?.deliveryInstructions && (
-                  <div><strong>Special Instructions:</strong> <em>"{placedOrder.fulfillment?.deliveryInstructions}"</em></div>
-                )}
-                <p className="fulfillment-instruction">
-                  ℹ️ Our delivery courier will contact you upon arrival at the destination address.
-                </p>
-              </div>
-            )}
           </div>
 
-          <div className="confirmed-totals">
-            <div>Subtotal: <strong>{formatCurrency(placedOrder.totals.subtotal)}</strong></div>
-            <div>VAT (15%): <strong>{formatCurrency(placedOrder.totals.vat)}</strong></div>
-            {placedOrder.totals.deliveryFee > 0 && (
-              <div>Delivery Fee: <strong>{formatCurrency(placedOrder.totals.deliveryFee)}</strong></div>
-            )}
+          <div className="receipt-table-card">
+            <div className="receipt-row">
+              <span>Subtotal</span>
+              <span>{formatCurrency(placedOrder.totals.subtotal)}</span>
+            </div>
             {placedOrder.totals.discountAmount > 0 && (
-              <div className="discount-applied">
-                Discount: <strong>-{formatCurrency(placedOrder.totals.discountAmount)}</strong>
+              <div className="receipt-row is-discount">
+                <span>Volume Discount Applied</span>
+                <span>-{formatCurrency(placedOrder.totals.discountAmount)}</span>
               </div>
             )}
-            <div className="total-due">
-              Total Paid: <strong>{formatCurrency(placedOrder.totals.total)}</strong>
+            <div className="receipt-row">
+              <span>VAT (15% Included)</span>
+              <span>{formatCurrency(placedOrder.totals.vat)}</span>
+            </div>
+            <div className="receipt-row">
+              <span>Fulfillment ({placedOrder.fulfillment?.mode === 'PICKUP' ? 'Store Pickup' : 'Courier'})</span>
+              <span>{placedOrder.totals.deliveryFee > 0 ? formatCurrency(placedOrder.totals.deliveryFee) : 'FREE'}</span>
+            </div>
+            <div className="receipt-divider" />
+            <div className="receipt-total-row">
+              <span>Total Paid</span>
+              <span className="receipt-total-val">{formatCurrency(placedOrder.totals.total)}</span>
             </div>
           </div>
 
-          <div className="receipt-actions">
-            <button
-              type="button"
-              className="btn-print"
-              onClick={() => window.print()}
-            >
-              🖨️ Print Receipt
+          <div className="receipt-actions-row">
+            <button type="button" className="btn-proceed-review" onClick={() => window.print()} style={{ flex: 1 }}>
+              <IconPrint /> Print Receipt
             </button>
             <button
               type="button"
-              className="btn-primary"
+              className="btn-final-checkout"
               onClick={() => {
                 setPlacedOrder(null);
-                setDrinks([
-                  { id: 1, flavourId: '', consistencyId: '', toppingId: '', cost: 0, isDone: false },
-                  { id: 2, flavourId: '', consistencyId: '', toppingId: '', cost: 0, isDone: false },
-                ]);
-                setQuantityInput('2');
+                setCurrentStage('builder');
+                handleResetBox();
               }}
+              style={{ flex: 1.5 }}
             >
-              Place Another Order
+              Build Another Pack &rarr;
             </button>
           </div>
         </main>
@@ -938,545 +810,663 @@ export default function OrderPlacement({ currentUser, onSignOut, onNavigateToMan
   }
 
   return (
-    <div className="order-page-wrapper">
-      {/* Top navigation header */}
-      <header className="order-top-nav">
-        <div className="nav-brand">
-          <span className="brand-icon">🍦</span>
-          <strong>Milky Shakes Drinks</strong>
+    <div className="box-builder-canvas">
+      {/* Top Caramel Melting Wave */}
+      <div className="box-top-wave-wrap" aria-hidden="true">
+        <svg viewBox="0 0 1440 100" preserveAspectRatio="none" className="box-top-wave-svg">
+          <path d="M0,0 L1440,0 L1440,65 C1150,105 880,45 600,85 C320,125 150,55 0,75 Z" fill="#BA724C" />
+        </svg>
+      </div>
+
+      {/* Top Floating Navbar */}
+      <header className="box-nav-bar">
+        <div className="box-nav-brand-group">
+          <span className="box-nav-brand-wordmark">milky</span>
+          <span className="box-nav-subtitle">Artisan Box Builder</span>
         </div>
-        <div className="nav-user">
-          <span className="user-badge">{currentUser?.first_name ? `${currentUser.first_name} (${currentUser.role || 'Patron'})` : (currentUser?.email || 'Patron')}</span>
+
+        {/* Pack Size Pills */}
+        <div className="box-pack-size-selector" role="group" aria-label="Pack Size Selector">
+          <button
+            type="button"
+            className={`btn-pack-size ${packSize === 2 ? 'is-active' : ''}`}
+            onClick={() => handlePackSizeChange(2)}
+          >
+            2-Pack
+          </button>
+          <button
+            type="button"
+            className={`btn-pack-size ${packSize === 4 ? 'is-active' : ''}`}
+            onClick={() => handlePackSizeChange(4)}
+          >
+            4-Pack (10% Off)
+          </button>
+          <button
+            type="button"
+            className={`btn-pack-size ${packSize === 6 ? 'is-active' : ''}`}
+            onClick={() => handlePackSizeChange(6)}
+          >
+            6-Pack (15% Off)
+          </button>
+        </div>
+
+        {/* User & Navigation */}
+        <div className="box-nav-user-group">
+          <span className="box-user-badge">
+            {currentUser?.first_name ? `${currentUser.first_name} (${currentUser.role || 'Patron'})` : (currentUser?.email || 'Patron')}
+          </span>
           {onNavigateToManagement && (
             <button
               type="button"
-              className="btn-management-nav"
+              className="btn-nav-admin"
               onClick={onNavigateToManagement}
-              title="Access Management Oversight & Filtered Reporting (FR-005)"
+              title="Access Management Oversight & Filtered Reporting"
             >
-              📊 Management Reporting
+              Management
             </button>
           )}
           {onSignOut && (
-            <button type="button" className="btn-signout" onClick={onSignOut}>
-              Sign out
+            <button type="button" className="btn-nav-signout" onClick={onSignOut}>
+              Sign Out
             </button>
           )}
         </div>
       </header>
 
-      {/* Main Order Placement View */}
-      <div className="order-layout-grid">
-        {/* Left Column: Order Placement */}
-        <section className="order-placement-column">
-          <h1 className="page-title">Order Placement</h1>
+      {/* Main Studio Area */}
+      <main className="box-main-content">
+        {/* Header & Gamified Discount Meter */}
+        <div className="box-header-row">
+          <h1 className="box-page-title">
+            {currentStage === 'builder' ? `Build Your ${packSize}-Pack Box` : 'Review Box & Fulfillment'}
+          </h1>
+          <p className="box-page-subtitle">
+            {currentStage === 'builder'
+              ? 'Select any slot in your carry box below to customize that milkshake, or use Barista’s Choice to randomize.'
+              : 'All slots configured. Choose store collection or thermal courier delivery.'}
+          </p>
 
-          {/* Number of Milkshakes Required Card */}
-          <div className="input-card quantity-card">
-            <div className="label-with-annotation">
-              <label htmlFor="milkshake-qty">Number of Milkshakes Required?</label>
-              <span className="annotation-tag badge-blue">All fields compulsory</span>
+          {/* Gamified Volume Discount Track */}
+          <div className="box-discount-meter" aria-label="Pack Discount Progress">
+            <div
+              className="discount-meter-fill"
+              style={{ width: `${Math.min(100, Math.round((filledDrinksCount / packSize) * 100))}%` }}
+              aria-hidden="true"
+            />
+            <div className="discount-meter-content">
+              <span className="meter-current-status">
+                {filledDrinksCount} of {packSize} Slots Filled ({Math.round((filledDrinksCount / packSize) * 100)}%)
+              </span>
+              <span className={`meter-tier-step ${filledDrinksCount >= 4 ? 'is-unlocked' : 'is-target'}`}>
+                {filledDrinksCount >= 4 ? '[Unlocked] 4-Pack: 10% Off' : '4-Pack: 10% Off Tier'}
+              </span>
+              <span className={`meter-tier-step ${filledDrinksCount >= 6 ? 'is-unlocked' : ''}`}>
+                {filledDrinksCount >= 6 ? '[Unlocked] 6-Pack: 15% Off + Cold Bag' : '6-Pack: 15% Off + Cold Bag'}
+              </span>
             </div>
-            <div className="input-with-annotation">
-              <input
-                id="milkshake-qty"
-                type="text"
-                value={quantityInput}
-                onChange={(e) => handleQuantityChange(e.target.value)}
-                placeholder="Insert number"
-                disabled={loadingCatalog}
-              />
-              <span className="annotation-tag badge-green">Numeric Value Only</span>
-            </div>
-            {quantityError && <p className="field-error-text">{quantityError}</p>}
           </div>
+        </div>
 
-          {/* Dynamic Milkshake Cards */}
-          <div className="drinks-container">
-            {drinks.map((drink, index) => {
-              const drinkNumber = index + 1;
-              return (
-                <div
-                  key={drink.id}
-                  className={`milkshake-card ${drink.isDone ? 'card-done' : ''}`}
-                >
-                  <div className="card-header">
-                    <h2>Milkshake {drinkNumber}</h2>
-                    {index === 1 && (
-                      <span className="annotation-tag badge-purple">
-                        Show detail for each drink ordered
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Flavour dropdown */}
-                  <div className="form-field">
-                    <label htmlFor={`flavour-${drinkNumber}`}>Flavour</label>
-                    <select
-                      id={`flavour-${drinkNumber}`}
-                      value={drink.flavourId}
-                      onChange={(e) => updateDrink(index, 'flavourId', e.target.value)}
-                      disabled={loadingCatalog}
-                    >
-                      <option value="">Select</option>
-                      {flavours.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {getItemName(item)} ({formatCurrency(getItemPrice(item))})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Thick or Not dropdown */}
-                  <div className="form-field">
-                    <label htmlFor={`consistency-${drinkNumber}`}>Thick or Not</label>
-                    <select
-                      id={`consistency-${drinkNumber}`}
-                      value={drink.consistencyId}
-                      onChange={(e) => updateDrink(index, 'consistencyId', e.target.value)}
-                      disabled={loadingCatalog}
-                    >
-                      <option value="">Select</option>
-                      {consistencies.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {getItemName(item)}{' '}
-                          {getItemPrice(item) > 0 ? `(+${formatCurrency(getItemPrice(item))})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Topping dropdown */}
-                  <div className="form-field">
-                    <label htmlFor={`topping-${drinkNumber}`}>Topping</label>
-                    <select
-                      id={`topping-${drinkNumber}`}
-                      value={drink.toppingId}
-                      onChange={(e) => updateDrink(index, 'toppingId', e.target.value)}
-                      disabled={loadingCatalog}
-                    >
-                      <option value="">Select</option>
-                      {toppings.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {getItemName(item)}{' '}
-                          {getItemPrice(item) > 0 ? `(+${formatCurrency(getItemPrice(item))})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Cost display row */}
-                  <div className="cost-row">
-                    <span className="cost-label">Cost:</span>
-                    <span className="cost-value">{formatCurrency(drink.cost)}</span>
-                    {index === 0 && (
-                      <span className="annotation-tag badge-yellow">
-                        Calculate drink price with extras
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Done button */}
-                  <button
-                    type="button"
-                    className={`btn-done ${drink.isDone ? 'btn-done-active' : ''}`}
-                    onClick={() => toggleDrinkDone(index)}
-                  >
-                    {drink.isDone ? '✓ Done' : 'Done'}
-                  </button>
+        {/* STAGE 1: BOX BUILDER */}
+        {currentStage === 'builder' && (
+          <div className="box-builder-grid">
+            {/* LEFT COLUMN: Physical Carry Tray with Interactive Slots */}
+            <section className="box-tray-card" aria-label="Kraft Carry Tray">
+              <div className="tray-header-bar">
+                <div className="tray-title-group">
+                  <h2 className="tray-title">Artisan Kraft Carry Tray</h2>
+                  <p className="tray-subtitle">Tap any slot below to select and modify its recipe</p>
                 </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Right Column: Order Summary */}
-        <aside className="order-summary-column">
-          <div className="summary-card">
-            <h2 className="summary-title">Order Summary</h2>
-
-            {/* Fulfillment Mode Selector (FR-003) */}
-            <div className="fulfillment-selector-container">
-              <label className="section-subtitle">Fulfillment Method</label>
-              <div className="fulfillment-tabs">
                 <button
                   type="button"
-                  className={`tab-btn ${fulfillmentMode === 'PICKUP' ? 'tab-btn-active' : ''}`}
+                  className="btn-barista-choice"
+                  onClick={handleBaristaChoice}
+                  title="Randomize recipes for empty slots"
+                >
+                  <IconDice /> Barista's Choice
+                </button>
+              </div>
+
+              {/* Slots Grid */}
+              <div className="tray-slots-grid">
+                {drinks.map((drink, index) => {
+                  const slotNumber = index + 1;
+                  const isFilled = Boolean(drink.flavourId);
+                  const isActive = activeSlotIndex === index;
+                  const flavourObj = flavours.find((f) => String(f.id) === String(drink.flavourId));
+                  const consistencyObj = consistencies.find((c) => String(c.id) === String(drink.consistencyId));
+                  const toppingObj = toppings.find((t) => String(t.id) === String(drink.toppingId));
+                  const visual = getFlavourVisual(flavourObj ? getItemName(flavourObj) : '');
+
+                  return (
+                    <div
+                      key={drink.id || index}
+                      className={`box-slot-item ${isActive ? 'is-active-slot' : ''} ${isFilled ? 'is-filled-slot' : 'is-empty-slot'}`}
+                      onClick={() => setActiveSlotIndex(index)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          setActiveSlotIndex(index);
+                        }
+                      }}
+                      aria-label={`Slot ${slotNumber}: ${isFilled ? getItemName(flavourObj) : 'Empty'}`}
+                    >
+                      {/* Slot Header */}
+                      <div className="slot-top-row">
+                        <span
+                          className={`slot-pill-badge ${
+                            isActive ? 'badge-active' : isFilled ? 'badge-filled' : 'badge-empty'
+                          }`}
+                        >
+                          {isActive ? `Slot ${slotNumber} (Editing)` : `Slot ${slotNumber}`}
+                        </span>
+
+                        {isFilled && (
+                          <button
+                            type="button"
+                            className="slot-delete-btn"
+                            onClick={(e) => handleClearSlot(index, e)}
+                            title={`Clear Slot ${slotNumber}`}
+                            aria-label={`Clear Slot ${slotNumber}`}
+                          >
+                            <IconTrash />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Graphic & Info */}
+                      {isFilled ? (
+                        <>
+                          <div className="slot-shaker-center">
+                            <div className="slot-bottle-art">
+                              <div className="bottle-straw" />
+                              <div className="bottle-cap" />
+                              <div className="bottle-glass" style={{ borderColor: visual.border }}>
+                                <div className="bottle-liquid" style={{ background: visual.liquid }}>
+                                  <div className="bottle-swirl" style={{ background: visual.swirl }} />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="slot-info-box">
+                            <h3 className="slot-recipe-title">{getItemName(flavourObj)}</h3>
+                            <p className="slot-recipe-meta">
+                              {getItemName(consistencyObj)} | {getItemName(toppingObj)}
+                            </p>
+                          </div>
+
+                          <div className="slot-bottom-action-row">
+                            <span className="slot-price-tag">{formatCurrency(drink.cost)}</span>
+                            <span className="slot-edit-trigger">
+                              Edit <IconEdit />
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="slot-empty-target">
+                          <div className="empty-target-plus">+</div>
+                          <span className="empty-target-label">Tap to Configure</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Utility Toolbar */}
+              <div className="tray-bottom-toolbar">
+                <button
+                  type="button"
+                  className="btn-tray-utility"
+                  onClick={handleFillRemainingWithSlot1}
+                  disabled={!drinks[0]?.flavourId}
+                >
+                  <IconCopy /> Fill Remaining with Slot 1
+                </button>
+                <button
+                  type="button"
+                  className="btn-tray-utility"
+                  onClick={handleResetBox}
+                  disabled={filledDrinksCount === 0}
+                >
+                  <IconTrash /> Reset Box
+                </button>
+              </div>
+            </section>
+
+            {/* RIGHT COLUMN: Slot Recipe Customizer Deck */}
+            <section className="box-deck-card" aria-label="Recipe Customizer Deck">
+              <div className="deck-header-badge">
+                Slot {activeSlotIndex + 1} of {packSize}
+              </div>
+              <h2 className="deck-title">Customize Milkshake Recipe</h2>
+
+              {/* Step 1: Base Flavour */}
+              <div className="deck-step-section">
+                <span className="deck-step-label">1. Choose Base Flavour</span>
+                <div className="deck-flavour-grid">
+                  {flavours.map((item) => {
+                    const isSelected = String(activeDrink.flavourId) === String(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={`btn-choice-card ${isSelected ? 'is-selected' : ''}`}
+                        onClick={() => updateActiveDrink('flavourId', item.id)}
+                      >
+                        <span className="choice-card-title">{getItemName(item)}</span>
+                        <span className="choice-card-meta">{formatCurrency(getItemPrice(item))}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Step 2: Consistency */}
+              <div className="deck-step-section">
+                <span className="deck-step-label">2. Select Consistency</span>
+                <div className="deck-consistency-row">
+                  {consistencies.map((item) => {
+                    const isSelected = String(activeDrink.consistencyId) === String(item.id);
+                    const extraPrice = getItemPrice(item);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={`btn-choice-card ${isSelected ? 'is-selected' : ''}`}
+                        onClick={() => updateActiveDrink('consistencyId', item.id)}
+                      >
+                        <span className="choice-card-title">{getItemName(item)}</span>
+                        <span className="choice-card-meta">
+                          {extraPrice > 0 ? `+${formatCurrency(extraPrice)}` : 'Standard'}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Step 3: Toppings */}
+              <div className="deck-step-section">
+                <span className="deck-step-label">3. Crown with Topping</span>
+                <div className="deck-toppings-wrap">
+                  {toppings.map((item) => {
+                    const isSelected = String(activeDrink.toppingId) === String(item.id);
+                    const extraPrice = getItemPrice(item);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={`btn-topping-pill ${isSelected ? 'is-selected' : ''}`}
+                        onClick={() => updateActiveDrink('toppingId', item.id)}
+                      >
+                        {isSelected && <IconCheck />}
+                        <span>{getItemName(item)}</span>
+                        {extraPrice > 0 && <span style={{ opacity: 0.8 }}>+{formatCurrency(extraPrice)}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Lock Button */}
+              <button
+                type="button"
+                className="btn-lock-slot"
+                onClick={handleLockCurrentSlot}
+              >
+                Save Recipe into Slot {activeSlotIndex + 1} &rarr;
+              </button>
+
+              {/* Bottom Summary Dock */}
+              <div className="deck-summary-dock">
+                <div className="deck-summary-header">Current Box Estimate</div>
+                <div className="deck-summary-price">{formatCurrency(orderTotals.total)}</div>
+                <p className="deck-summary-note">
+                  {filledDrinksCount < packSize
+                    ? `Fill ${packSize - filledDrinksCount} more slots to complete your pack.`
+                    : effectiveDiscount
+                    ? `${effectiveDiscount.tier_name} automatically applied!`
+                    : 'All slots locked! Ready for fulfillment.'}
+                </p>
+                <button
+                  type="button"
+                  className="btn-proceed-review"
+                  onClick={() => setCurrentStage('review')}
+                  disabled={filledDrinksCount < MIN_DRINKS_PER_ORDER}
+                >
+                  Review Box & Fulfillment ({filledDrinksCount} Shakes) &rarr;
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {/* STAGE 2: REVIEW & FULFILLMENT */}
+        {currentStage === 'review' && (
+          <div className="box-builder-grid">
+            {/* Left Column: Completed Pack Summary */}
+            <section className="review-stage-card" aria-label="Packed Crate Summary">
+              <div className="review-stage-header">
+                <div>
+                  <div className="deck-header-badge">
+                    <IconCheck /> Pack Ready
+                  </div>
+                  <h2 className="box-page-title" style={{ fontSize: '24px', margin: 0 }}>
+                    Artisan {packSize}-Pack Crate
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  className="btn-back-to-tray"
+                  onClick={() => setCurrentStage('builder')}
+                >
+                  &larr; Edit Box Slots
+                </button>
+              </div>
+
+              {/* Items List */}
+              <div className="packed-items-stack">
+                {drinks.map((item, idx) => {
+                  const f = flavours.find((x) => String(x.id) === String(item.flavourId));
+                  const c = consistencies.find((x) => String(x.id) === String(item.consistencyId));
+                  const t = toppings.find((x) => String(x.id) === String(item.toppingId));
+                  return (
+                    <div key={item.id || idx} className="packed-item-row">
+                      <div className="packed-item-left">
+                        <span className="packed-item-number">SLOT {idx + 1}</span>
+                        <div>
+                          <div className="packed-item-title">{f ? getItemName(f) : 'Unassigned Shake'}</div>
+                          <div className="packed-item-sub">
+                            {c ? getItemName(c) : 'Smooth'} | Topping: {t ? getItemName(t) : 'None'}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="packed-item-price">{formatCurrency(item.cost)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Thermal Packaging Assurance */}
+              <div style={{ background: '#E8F8F0', border: '1px solid #BBE8D0', borderRadius: '18px', padding: '16px 20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#175234', fontWeight: '800', fontSize: '13.5px', marginBottom: '6px' }}>
+                  <IconSnowflake /> 60-Minute Sub-Zero Cold-Lock Guarantee
+                </div>
+                <p style={{ margin: 0, fontSize: '12px', color: '#2D7D54', lineHeight: 1.45 }}>
+                  Every box is sealed with reusable food-safe dry-chill thermal inserts, keeping your milkshakes frozen, thick, and frosty.
+                </p>
+              </div>
+            </section>
+
+            {/* Right Column: Fulfillment & Checkout Form */}
+            <section className="review-stage-card" aria-label="Fulfillment and Checkout Details">
+              <span className="deck-step-label">Fulfillment Channel</span>
+              <div className="fulfillment-channels-row" role="radiogroup">
+                <button
+                  type="button"
+                  className={`channel-card ${fulfillmentMode === 'PICKUP' ? 'is-selected' : ''}`}
                   onClick={() => setFulfillmentMode('PICKUP')}
                 >
-                  🏪 Store Pickup
+                  <span className="channel-card-title">
+                    <IconStore /> Store Pickup
+                  </span>
+                  <span className="channel-card-sub">Counter Collection (Free)</span>
                 </button>
+
                 <button
                   type="button"
-                  className={`tab-btn ${fulfillmentMode === 'DELIVERY' ? 'tab-btn-active' : ''}`}
+                  className={`channel-card ${fulfillmentMode === 'DELIVERY' ? 'is-selected' : ''}`}
                   onClick={() => setFulfillmentMode('DELIVERY')}
                 >
-                  🚚 Home Delivery
+                  <span className="channel-card-title">
+                    <IconTruck /> Courier Delivery
+                  </span>
+                  <span className="channel-card-sub">Thermal Sealed (+R15.00)</span>
                 </button>
               </div>
 
-              {fulfillmentMode === 'PICKUP' ? (
-                <div className="fulfillment-form-fields">
-                  <div className="fulfillment-field">
-                    <label htmlFor="pickup-store-select">Store Location</label>
-                    <select
-                      id="pickup-store-select"
-                      value={pickupRestaurantId}
-                      onChange={(e) => setPickupRestaurantId(e.target.value)}
-                    >
-                      {restaurants.map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.name} ({r.address})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="fulfillment-field">
-                    <label htmlFor="pickup-timeslot-select">Pickup Time Slot</label>
-                    <select
-                      id="pickup-timeslot-select"
-                      value={pickupTimeSlot}
-                      onChange={(e) => setPickupTimeSlot(e.target.value)}
-                    >
-                      <option value="15_MINS">In 15 minutes</option>
-                      <option value="30_MINS">In 30 minutes</option>
-                      <option value="45_MINS">In 45 minutes</option>
-                      <option value="60_MINS">In 1 hour</option>
-                      <option value="SPECIFIC">Choose specific time</option>
-                    </select>
-                  </div>
-
-                  {pickupTimeSlot === 'SPECIFIC' && (
-                    <div className="fulfillment-field">
-                      <label htmlFor="custom-pickup-time">Estimated Pickup Time</label>
-                      <input
-                        id="custom-pickup-time"
-                        type="time"
-                        value={customPickupTime}
-                        onChange={(e) => setCustomPickupTime(e.target.value)}
-                        required
-                      />
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="fulfillment-form-fields">
-                  <div className="fulfillment-field">
-                    <label htmlFor="delivery-street-input">
-                      Street Address <span className="req">*</span>
-                    </label>
-                    <input
-                      id="delivery-street-input"
-                      type="text"
-                      placeholder="e.g. 42 Milky Way, Apt 3B"
-                      value={deliveryStreet}
-                      onChange={(e) => setDeliveryStreet(e.target.value)}
-                      required
-                    />
-                    {!deliveryStreet.trim() && (
-                      <span className="field-hint-error">Street address is required</span>
-                    )}
-                  </div>
-
-                  <div className="fulfillment-row">
-                    <div className="fulfillment-field">
-                      <label htmlFor="delivery-postal-input">
-                        Postal Code <span className="req">*</span>
-                      </label>
-                      <input
-                        id="delivery-postal-input"
-                        type="text"
-                        placeholder="e.g. 8001"
-                        value={deliveryPostalCode}
-                        onChange={(e) => setDeliveryPostalCode(e.target.value)}
-                        required
-                      />
-                      {!deliveryPostalCode.trim() && (
-                        <span className="field-hint-error">Postal code is required</span>
-                      )}
-                    </div>
-
-                    <div className="fulfillment-field">
-                      <label htmlFor="delivery-phone-input">
-                        Contact Phone <span className="req">*</span>
-                      </label>
-                      <input
-                        id="delivery-phone-input"
-                        type="tel"
-                        placeholder="e.g. +27 82 123 4567"
-                        value={deliveryPhone}
-                        onChange={(e) => setDeliveryPhone(e.target.value)}
-                        required
-                      />
-                      {!deliveryPhone.trim() && (
-                        <span className="field-hint-error">Phone is required</span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="fulfillment-field">
-                    <label htmlFor="delivery-notes-input">Special Instructions (Optional)</label>
-                    <input
-                      id="delivery-notes-input"
-                      type="text"
-                      placeholder="e.g. Ring intercom 12, leave at door"
-                      value={deliveryInstructions}
-                      onChange={(e) => setDeliveryInstructions(e.target.value)}
-                    />
-                  </div>
+              {/* Pickup Location Selector */}
+              {fulfillmentMode === 'PICKUP' && (
+                <div className="fulfillment-field-box">
+                  <label htmlFor="store-select" className="fulfillment-field-label">
+                    Collection Store Location
+                  </label>
+                  <select
+                    id="store-select"
+                    className="fulfillment-select"
+                    value={pickupRestaurantId}
+                    onChange={(e) => setPickupRestaurantId(e.target.value)}
+                  >
+                    {restaurants.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.name} ({r.address || 'Flagship Store'})
+                      </option>
+                    ))}
+                  </select>
                 </div>
               )}
-            </div>
 
-            <hr className="summary-divider" />
+              {/* Delivery Address Fields */}
+              {fulfillmentMode === 'DELIVERY' && (
+                <div className="fulfillment-field-box">
+                  <label htmlFor="delivery-street" className="fulfillment-field-label">
+                    Street Address
+                  </label>
+                  <input
+                    id="delivery-street"
+                    type="text"
+                    className="fulfillment-text-input"
+                    value={deliveryStreet}
+                    onChange={(e) => setDeliveryStreet(e.target.value)}
+                    placeholder="e.g. 144 Oxford Road, Rosebank"
+                    required
+                  />
 
-            <div className="summary-row">
-              <span>Number of Drinks</span>
-              <strong>{drinks.length}</strong>
-            </div>
+                  <label htmlFor="delivery-postal" className="fulfillment-field-label" style={{ marginTop: '8px' }}>
+                    Postal Code
+                  </label>
+                  <input
+                    id="delivery-postal"
+                    type="text"
+                    className="fulfillment-text-input"
+                    value={deliveryPostalCode}
+                    onChange={(e) => setDeliveryPostalCode(e.target.value)}
+                    placeholder="e.g. 2196"
+                    required
+                  />
 
-            <div className="summary-row">
-              <span>Subtotal</span>
-              <strong>{formatCurrency(orderTotals.subtotal)}</strong>
-            </div>
+                  <label htmlFor="delivery-phone" className="fulfillment-field-label" style={{ marginTop: '8px' }}>
+                    Recipient Mobile Phone
+                  </label>
+                  <input
+                    id="delivery-phone"
+                    type="tel"
+                    className="fulfillment-text-input"
+                    value={deliveryPhone}
+                    onChange={(e) => setDeliveryPhone(e.target.value)}
+                    placeholder="+27 82 555 1234"
+                    required
+                  />
+                </div>
+              )}
 
-            <div className="summary-row">
-              <span>VAT (15%)</span>
-              <strong>{formatCurrency(orderTotals.vat)}</strong>
-            </div>
-
-            {orderTotals.deliveryFee > 0 && (
-              <div className="summary-row">
-                <span>Delivery Fee</span>
-                <strong>{formatCurrency(orderTotals.deliveryFee)}</strong>
-              </div>
-            )}
-
-            {/* Frequent Customer Discount */}
-            <div className="discount-section">
-              <label htmlFor="discount-input">Frequent Customer Discount</label>
-              <div className="discount-input-group">
+              {/* Promo Code Drawer */}
+              <div className="promo-code-row">
                 <input
-                  id="discount-input"
                   type="text"
+                  className="promo-input"
+                  placeholder="Promo Code (e.g. MILKY10)"
                   value={discountCodeInput}
                   onChange={(e) => setDiscountCodeInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleApplyDiscount();
-                    }
-                  }}
-                  placeholder="Insert"
                 />
                 <button
                   type="button"
-                  className="btn-apply-discount"
-                  onClick={handleApplyDiscount}
+                  className="btn-apply-promo"
+                  onClick={handleApplyDiscountCode}
                 >
                   Apply
                 </button>
               </div>
 
               {discountStatus && (
-                <p className={`discount-feedback feedback-${discountStatus.type}`}>
+                <p style={{ fontSize: '12px', fontWeight: '700', color: discountStatus.type === 'success' ? '#2D7D54' : '#B91C1C', margin: '-10px 0 14px' }}>
                   {discountStatus.text}
                 </p>
               )}
-            </div>
 
-            <div className="summary-row total-cost-row">
-              <span>Total cost</span>
-              <strong className="total-amount">{formatCurrency(orderTotals.total)}</strong>
-            </div>
-
-            {/* Error on submission */}
-            {submitError && <div className="submit-error-banner">{submitError}</div>}
-
-            {/* Continue Button */}
-            <button
-              type="button"
-              className="btn-continue"
-              disabled={!isOrderComplete || !isFulfillmentValid || submitting}
-              onClick={handleContinue}
-            >
-              {submitting
-                ? 'Placing Order...'
-                : !isOrderComplete
-                ? 'Continue'
-                : !isFulfillmentValid
-                ? (fulfillmentMode === 'DELIVERY' ? 'Complete delivery details' : 'Complete pickup details')
-                : 'Proceed to Payment 💳'}
-            </button>
-
-            <div className="continue-annotation">
-              <span className="annotation-tag badge-pink">
-                {!isOrderComplete
-                  ? 'Continue when all data captured'
-                  : !isFulfillmentValid
-                  ? (fulfillmentMode === 'DELIVERY' ? 'Address and phone compulsory for delivery' : 'Store and time slot required')
-                  : 'Ready to proceed to payment'}
-              </span>
-            </div>
-          </div>
-        </aside>
-      </div>
-
-      {/* Integrated Payment Checkout Modal (FR-004) */}
-      {showPaymentModal && pendingOrderData && (
-        <div className="modal-backdrop">
-          <div className="payment-modal-card">
-            <div className="modal-header">
-              <div className="modal-header-title">
-                <span className="modal-icon">💳</span>
-                <h3>Secure Payment Checkout</h3>
+              {/* Receipt Breakdown Table */}
+              <div className="receipt-table-card">
+                <div className="receipt-row">
+                  <span>Subtotal ({drinks.length} Milkshakes)</span>
+                  <span>{formatCurrency(orderTotals.subtotal)}</span>
+                </div>
+                {orderTotals.discountAmount > 0 && (
+                  <div className="receipt-row is-discount">
+                    <span>{effectiveDiscount?.tier_name || 'Volume Discount'}</span>
+                    <span>-{formatCurrency(orderTotals.discountAmount)}</span>
+                  </div>
+                )}
+                <div className="receipt-row">
+                  <span>VAT (15% Included in Subtotal)</span>
+                  <span>{formatCurrency(orderTotals.vat)}</span>
+                </div>
+                <div className="receipt-row">
+                  <span>Fulfillment ({fulfillmentMode === 'PICKUP' ? 'Store Pickup' : 'Courier Delivery'})</span>
+                  <span>{orderTotals.deliveryFee > 0 ? formatCurrency(orderTotals.deliveryFee) : 'FREE'}</span>
+                </div>
+                <div className="receipt-divider" />
+                <div className="receipt-total-row">
+                  <span>Total Amount Due</span>
+                  <span className="receipt-total-val">{formatCurrency(orderTotals.total)}</span>
+                </div>
               </div>
+
+              {submitError && (
+                <div style={{ color: '#B91C1C', background: '#FEF2F2', padding: '10px 14px', borderRadius: '12px', marginBottom: '14px', fontSize: '13px' }}>
+                  {submitError}
+                </div>
+              )}
+
+              {/* Primary Checkout CTA */}
               <button
                 type="button"
-                className="btn-modal-close"
-                onClick={() => {
-                  setShowPaymentModal(false);
-                  setPaymentError('');
-                }}
-                disabled={processingPayment}
+                className="btn-final-checkout"
+                onClick={handleProceedToPayment}
+                disabled={submitting || !isOrderReady || !isFulfillmentValid}
               >
-                ✕
+                {submitting ? 'Preparing Checkout...' : `Proceed to Secure Payment (${formatCurrency(orderTotals.total)}) \u2192`}
+              </button>
+
+              <div className="checkout-security-footnote">
+                <IconLock /> Safe 256-Bit SSL Encrypted Checkout
+              </div>
+            </section>
+          </div>
+        )}
+      </main>
+
+      {/* Payment Processing Modal (FR-004) */}
+      {showPaymentModal && pendingOrderData && (
+        <div className="payment-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="pay-modal-title">
+          <div className="payment-modal-card">
+            <h2 id="pay-modal-title" className="payment-modal-title">Complete Payment</h2>
+            <p className="payment-modal-sub">
+              Amount Due: <strong>{formatCurrency(pendingOrderData.totals.total)}</strong> for Order #{pendingOrderData.orderNumber}
+            </p>
+
+            <div className="payment-tabs-row">
+              <button
+                type="button"
+                className={`btn-pay-method ${paymentMethod === 'CARD' ? 'is-selected' : ''}`}
+                onClick={() => setPaymentMethod('CARD')}
+              >
+                Credit / Debit Card
+              </button>
+              <button
+                type="button"
+                className={`btn-pay-method ${paymentMethod === 'EFT' ? 'is-selected' : ''}`}
+                onClick={() => setPaymentMethod('EFT')}
+              >
+                Instant EFT
               </button>
             </div>
 
-            <div className="payment-order-summary">
-              <div>
-                Order Reference: <strong>{pendingOrderData.orderNumber}</strong> ({pendingOrderData.items.length} drinks)
-              </div>
-              <div className="modal-amount-due">
-                Amount Due: <strong>{formatCurrency(pendingOrderData.totals.total)}</strong>
-              </div>
-            </div>
-
-            {/* Actionable Retry Guidance on Payment Failure (AC-FR-004.2) */}
-            {paymentError && (
-              <div className="payment-error-banner">
-                <div className="error-title">🚨 Payment Authorization Declined</div>
-                <p>{paymentError}</p>
-                <div className="error-hint">
-                  <strong>Actionable Guidance:</strong> Please check that your card number, expiry date, and CVC are entered correctly, or select another payment method.
-                </div>
-              </div>
-            )}
-
-            {/* Payment Method Selector */}
-            <div className="payment-method-selector">
-              <label className="section-subtitle">Select Payment Provider</label>
-              <div className="payment-tabs">
-                <button
-                  type="button"
-                  className={`payment-tab-btn ${paymentMethod === 'CARD' ? 'active' : ''}`}
-                  onClick={() => setPaymentMethod('CARD')}
-                >
-                  💳 Credit / Debit Card (Stripe)
-                </button>
-                <button
-                  type="button"
-                  className={`payment-tab-btn ${paymentMethod === 'EFT' ? 'active' : ''}`}
-                  onClick={() => setPaymentMethod('EFT')}
-                >
-                  🏦 Instant EFT
-                </button>
-              </div>
-            </div>
-
             {paymentMethod === 'CARD' ? (
-              <div className="card-fields-grid">
-                <div className="field-group">
-                  <label htmlFor="cardholder-name">Cardholder Name</label>
+              <div>
+                <div className="payment-input-group">
+                  <label htmlFor="card-name" className="payment-input-label">Cardholder Name</label>
                   <input
-                    id="cardholder-name"
+                    id="card-name"
                     type="text"
+                    className="payment-input"
                     value={cardholderName}
                     onChange={(e) => setCardholderName(e.target.value)}
-                    required
                   />
                 </div>
-                <div className="field-group">
-                  <label htmlFor="card-number">Card Number</label>
+                <div className="payment-input-group">
+                  <label htmlFor="card-number" className="payment-input-label">Card Number</label>
                   <input
                     id="card-number"
                     type="text"
+                    className="payment-input"
                     value={cardNumber}
                     onChange={(e) => setCardNumber(e.target.value)}
-                    placeholder="4242 •••• •••• 4242"
-                    required
                   />
                 </div>
-                <div className="card-row">
-                  <div className="field-group">
-                    <label htmlFor="card-expiry">Expiry Date</label>
+                <div className="payment-row-split">
+                  <div className="payment-input-group">
+                    <label htmlFor="card-expiry" className="payment-input-label">Expiry</label>
                     <input
                       id="card-expiry"
                       type="text"
+                      className="payment-input"
                       value={cardExpiry}
                       onChange={(e) => setCardExpiry(e.target.value)}
-                      placeholder="MM/YY"
-                      required
                     />
                   </div>
-                  <div className="field-group">
-                    <label htmlFor="card-cvc">CVC</label>
+                  <div className="payment-input-group">
+                    <label htmlFor="card-cvc" className="payment-input-label">CVC</label>
                     <input
                       id="card-cvc"
-                      type="password"
-                      maxLength={4}
+                      type="text"
+                      className="payment-input"
                       value={cardCvc}
                       onChange={(e) => setCardCvc(e.target.value)}
-                      placeholder="123"
-                      required
                     />
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="eft-info-card">
-                <p>
-                  You will be securely connected to your online banking provider to authorize the payment of{' '}
-                  <strong>{formatCurrency(pendingOrderData.totals.total)}</strong>.
-                </p>
+              <div style={{ background: '#FAF4EC', padding: '16px', borderRadius: '14px', marginBottom: '16px', fontSize: '13px', color: '#7C6053' }}>
+                Instant EFT simulator: Your banking portal will securely authorize {formatCurrency(pendingOrderData.totals.total)}.
               </div>
             )}
 
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="btn-pay-confirm"
-                disabled={processingPayment}
-                onClick={() => handleProcessPayment('SUCCESS')}
-              >
-                {processingPayment
-                  ? 'Verifying with Gateway...'
-                  : `Authorize & Pay ${formatCurrency(pendingOrderData.totals.total)}`}
-              </button>
+            {paymentError && (
+              <div style={{ color: '#B91C1C', background: '#FEF2F2', padding: '10px 14px', borderRadius: '12px', marginTop: '14px', fontSize: '13px' }}>
+                {paymentError}
+              </div>
+            )}
 
-              {/* Actionable Retry Testing for AC-FR-004.2 */}
+            <div className="payment-actions-split">
               <button
                 type="button"
-                className="btn-pay-fail"
+                className="btn-pay-cancel"
+                onClick={() => setShowPaymentModal(false)}
                 disabled={processingPayment}
-                onClick={() => handleProcessPayment('FAILED')}
-                title="Test failed authorization to verify AC-FR-004.2 retry guidance"
               >
-                Simulate Card Decline (Test AC-FR-004.2)
+                Cancel
               </button>
-
               <button
                 type="button"
-                className="btn-modal-cancel"
+                className="btn-pay-submit"
+                onClick={() => handleExecutePayment('SUCCESS')}
                 disabled={processingPayment}
-                onClick={() => {
-                  setShowPaymentModal(false);
-                  setPaymentError('');
-                }}
               >
-                Cancel & Review Order
+                {processingPayment ? 'Processing...' : `Authorize ${formatCurrency(pendingOrderData.totals.total)}`}
               </button>
             </div>
           </div>
