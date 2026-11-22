@@ -799,16 +799,6 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
   if (placedOrder) {
     return (
       <div className="box-builder-canvas">
-        {/* Top Caramel Wave */}
-        <div className="box-wave-container" aria-hidden="true">
-          <svg viewBox="0 0 1440 180" preserveAspectRatio="none" className="box-wave-svg">
-            <path
-              style={{ fill: '#CC7452' }}
-              d="M0,0 L1440,0 L1440,135 C1240,175 1020,110 720,155 C420,195 200,120 0,155 Z"
-            />
-          </svg>
-        </div>
-
         <header className="box-nav-header">
           <div
             className="box-nav-logo"
@@ -951,20 +941,6 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
 
   return (
     <div className="box-builder-canvas">
-      {/* Top Ambient Wave Layer (Seamless with Landing Page) */}
-      <div className="box-wave-container" aria-hidden="true">
-        <svg
-          viewBox="0 0 1440 180"
-          preserveAspectRatio="none"
-          className="box-wave-svg"
-        >
-          <path
-            style={{ fill: '#CC7452' }}
-            d="M0,0 L1440,0 L1440,135 C1240,175 1020,110 720,155 C420,195 200,120 0,155 Z"
-          />
-        </svg>
-      </div>
-
       {/* Top Header / Navigation Bar (Coherent with Landing Page) */}
       <header className="box-nav-header">
         {/* Brand Logo */}
