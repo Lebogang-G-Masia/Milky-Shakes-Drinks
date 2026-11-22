@@ -11,6 +11,7 @@ import {
 import { useRouter } from './router';
 import { saveOrderDraft, loadOrderDraft, clearOrderDraft } from './orderDraft';
 import AuthModal from './AuthModal';
+import { MilkyReceiptPrinter, ReceiptPrinter } from './ReceiptPrinter';
 import './OrderPlacement.css';
 
 // Clean SVG Icons (NO EMOJIS)
@@ -1049,92 +1050,16 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
           </div>
         </header>
 
-        <main className="confirmed-receipt-card" aria-labelledby="receipt-title">
-          <div className="receipt-verified-header">
-            <div className="receipt-verified-badge">
-              <IconCheck /> Verified Tax Invoice
-            </div>
-            <h1 id="receipt-title" className="receipt-verified-title">
-              Order #{placedOrder.orderNumber} Confirmed
-            </h1>
-            <p className="receipt-verified-code">
-              Receipt Reference: {placedOrder.payment?.receiptNumber}
-            </p>
-          </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '800', marginBottom: '12px' }}>
-              Your Custom Artisan Pack ({placedOrder.items.length} Shakes)
-            </h3>
-            <div className="packed-items-stack">
-              {placedOrder.items.map((item) => {
-                const visual = getFlavourVisual(item.flavour);
-                return (
-                  <div key={item.number} className="packed-item-row">
-                    <div className="packed-item-left">
-                      <span className="packed-item-number">SLOT {item.number}</span>
-                      <img
-                        src={visual.image}
-                        alt={visual.alt}
-                        style={{ width: '38px', height: '48px', objectFit: 'contain' }}
-                      />
-                      <div>
-                        <div className="packed-item-title">{item.flavour}</div>
-                        <div className="packed-item-sub">
-                          {item.consistency} | Topping: {item.topping}
-                        </div>
-                      </div>
-                    </div>
-                    <span className="packed-item-price">{formatCurrency(item.cost)}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="receipt-table-card">
-            <div className="receipt-row">
-              <span>Subtotal</span>
-              <span>{formatCurrency(placedOrder.totals.subtotal)}</span>
-            </div>
-            {placedOrder.totals.discountAmount > 0 && (
-              <div className="receipt-row is-discount">
-                <span>Volume Discount Applied</span>
-                <span>-{formatCurrency(placedOrder.totals.discountAmount)}</span>
-              </div>
-            )}
-            <div className="receipt-row">
-              <span>VAT (15% Included)</span>
-              <span>{formatCurrency(placedOrder.totals.vat)}</span>
-            </div>
-            <div className="receipt-row">
-              <span>Fulfillment ({placedOrder.fulfillment?.mode === 'PICKUP' ? 'Store Pickup' : 'Courier'})</span>
-              <span>{placedOrder.totals.deliveryFee > 0 ? formatCurrency(placedOrder.totals.deliveryFee) : 'FREE'}</span>
-            </div>
-            <div className="receipt-divider" />
-            <div className="receipt-total-row">
-              <span>Total Paid</span>
-              <span className="receipt-total-val">{formatCurrency(placedOrder.totals.total)}</span>
-            </div>
-          </div>
-
-          <div className="receipt-actions-row">
-            <button type="button" className="btn-proceed-review" onClick={() => window.print()} style={{ flex: 1 }}>
-              <IconPrint /> Print Receipt
-            </button>
-            <button
-              type="button"
-              className="btn-final-checkout"
-              onClick={() => {
-                setPlacedOrder(null);
-                setCurrentStage('builder');
-                handleResetBox();
-              }}
-              style={{ flex: 1.5 }}
-            >
-              Build Another Pack &rarr;
-            </button>
-          </div>
+        <main style={{ padding: '24px 0 60px' }}>
+          <MilkyReceiptPrinter
+            order={placedOrder}
+            onReset={() => {
+              setPlacedOrder(null);
+              setCurrentStage('builder');
+              handleResetBox();
+            }}
+            onHome={() => navigate('/')}
+          />
         </main>
       </div>
     );
