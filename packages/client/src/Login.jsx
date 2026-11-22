@@ -1,19 +1,22 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { supabase } from "./supabaseClient";
 import { hashPassword } from "./SignUp";
 
-export default function Login({ onSwitch, onSuccess }) {
+export default function Login({ onSwitch, onSuccess, onGuest }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [infoMessage, setInfoMessage] = useState("");
 
   async function handleSubmit(e) {
-    e.preventDefault(); // stop the page from reloading
+    e.preventDefault();
     setError("");
+    setInfoMessage("");
 
-    if (!email || !password) {
-      setError("Please fill in both fields.");
+    if (!email.trim() || !password) {
+      setError("Please fill in both email and password.");
       return;
     }
 
@@ -55,38 +58,115 @@ export default function Login({ onSwitch, onSuccess }) {
     }
   }
 
+  function handleForgotPassword() {
+    setError("");
+    setInfoMessage("Password reset instructions have been sent to your email address if an account exists.");
+  }
+
   return (
-    <form className="auth-form" onSubmit={handleSubmit}>
-      <h1 id="sign-in-header">Sign in</h1>
+    <form className="auth-form-wrapper" onSubmit={handleSubmit} noValidate>
+      {/* Email Field */}
+      <div className="auth-field-group">
+        <label className="auth-field-label" htmlFor="auth-email">
+          Email Address
+        </label>
+        <input
+          id="auth-email"
+          type="email"
+          className="auth-input"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="username"
+          placeholder="e.g. sarah@example.com"
+          required
+        />
+      </div>
 
-      <label htmlFor="email">Email</label>
-      <input
-        id="email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        autoComplete="username"
-        placeholder="e.g. alex@example.com"
-      />
+      {/* Password Field */}
+      <div className="auth-field-group">
+        <label className="auth-field-label" htmlFor="auth-password">
+          Password
+        </label>
+        <input
+          id="auth-password"
+          type="password"
+          className="auth-input"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
+          placeholder="••••••••••••"
+          required
+        />
+      </div>
 
-      <label htmlFor="password">Password</label>
-      <input
-        id="password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        autoComplete="current-password"
-      />
+      {/* Options Row: Remember Me & Forgot Password */}
+      <div className="auth-options-row">
+        <label className="auth-checkbox-label">
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+          />
+          Remember my login
+        </label>
 
-      {error && <p className="error">{error}</p>}
+        <button
+          type="button"
+          className="auth-forgot-link"
+          onClick={handleForgotPassword}
+        >
+          Forgot password?
+        </button>
+      </div>
 
-      <button type="submit" disabled={loading}>
-        {loading ? "Signing in..." : "Sign in"}
+      {/* Error Banner */}
+      {error && (
+        <div className="auth-error-banner" role="alert">
+          <span>⚠️</span>
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Info Message */}
+      {infoMessage && (
+        <div className="auth-tip-card is-security" role="status">
+          <span>ℹ️</span>
+          <span>{infoMessage}</span>
+        </div>
+      )}
+
+      {/* Primary Submit Button */}
+      <button
+        type="submit"
+        className="btn-auth-primary"
+        disabled={loading}
+      >
+        {loading ? "Signing in..." : "Sign In"}
       </button>
 
-      <p className="switch">
-        New here?{" "}
-        <button type="button" className="link" onClick={onSwitch}>
+      {/* Divider & Guest Access */}
+      {onGuest && (
+        <>
+          <div className="auth-divider-row" aria-hidden="true">
+            <span className="auth-divider-line" />
+            <span>or</span>
+            <span className="auth-divider-line" />
+          </div>
+
+          <button
+            type="button"
+            className="btn-guest-checkout"
+            onClick={onGuest}
+          >
+            Continue as Guest (No Password Required)
+          </button>
+        </>
+      )}
+
+      {/* Switch to Sign Up */}
+      <p className="auth-switch-prompt">
+        New to Milky Shakes?{" "}
+        <button type="button" className="auth-switch-link" onClick={onSwitch}>
           Create an account
         </button>
       </p>

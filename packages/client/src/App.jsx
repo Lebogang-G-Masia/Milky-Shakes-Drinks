@@ -76,6 +76,8 @@ export default function App() {
           setActiveView("order");
         }
       }}
+      onBackToLanding={() => setActiveView("landing")}
+      onContinueAsGuest={() => setActiveView("order")}
     />
   );
 }
