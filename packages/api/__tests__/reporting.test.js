@@ -237,4 +237,88 @@ describe('Management Oversight & Filtered Reporting (FR-005)', () => {
       }
     });
   });
+
+  describe('Live Kitchen & Operational Order Management', () => {
+    it('updates order status in real-time and registers audit entry', async () => {
+      const res = await fetch(`${baseUrl}/api/admin/orders/ord-sample-2/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-role': USER_ROLES.MANAGER,
+        },
+        body: JSON.stringify({ status: ORDER_STATUS.READY, note: 'Blended and packaged for driver' }),
+      });
+
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.strictEqual(data.success, true);
+      assert.strictEqual(data.order.status, ORDER_STATUS.READY);
+    });
+
+    it('rejects invalid status updates with HTTP 400', async () => {
+      const res = await fetch(`${baseUrl}/api/admin/orders/ord-sample-1/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-role': USER_ROLES.MANAGER,
+        },
+        body: JSON.stringify({ status: 'INVALID_STATUS' }),
+      });
+
+      assert.strictEqual(res.status, 400);
+      const data = await res.json();
+      assert.strictEqual(data.success, false);
+    });
+  });
+
+  describe('Inventory & Store Operational Controls', () => {
+    it('retrieves inventory catalog with flavours and toppings', async () => {
+      const res = await fetch(`${baseUrl}/api/admin/inventory`, {
+        headers: { 'x-user-role': USER_ROLES.MANAGER },
+      });
+
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.strictEqual(data.success, true);
+      assert.ok(Array.isArray(data.inventory));
+      assert.ok(data.inventory.length >= 8);
+    });
+
+    it('updates item stock status (IN_STOCK -> LOW_STOCK)', async () => {
+      const res = await fetch(`${baseUrl}/api/admin/inventory/flav-1`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-role': USER_ROLES.MANAGER,
+        },
+        body: JSON.stringify({ stockStatus: 'LOW_STOCK', remainingPortions: 5 }),
+      });
+
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.strictEqual(data.success, true);
+      assert.strictEqual(data.item.stockStatus, 'LOW_STOCK');
+      assert.strictEqual(data.item.remainingPortions, 5);
+    });
+
+    it('retrieves and switches store operational mode', async () => {
+      const getRes = await fetch(`${baseUrl}/api/admin/store-status`, {
+        headers: { 'x-user-role': USER_ROLES.MANAGER },
+      });
+      assert.strictEqual(getRes.status, 200);
+
+      const patchRes = await fetch(`${baseUrl}/api/admin/store-status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-role': USER_ROLES.MANAGER,
+        },
+        body: JSON.stringify({ mode: 'BUSY', rushExtraMinutes: 15 }),
+      });
+      assert.strictEqual(patchRes.status, 200);
+      const patchData = await patchRes.json();
+      assert.strictEqual(patchData.storeStatus.mode, 'BUSY');
+      assert.strictEqual(patchData.storeStatus.rushExtraMinutes, 15);
+    });
+  });
 });

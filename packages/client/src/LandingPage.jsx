@@ -219,6 +219,8 @@ export default function LandingPage({
             {[
               { label: "Home", path: "/" },
               { label: "Orders", path: "/orders" },
+              ...(currentUser ? [{ label: "My Orders", path: "/my-orders" }] : []),
+              ...(currentUser?.role === 'MANAGER' || currentUser?.role === 'STAFF' ? [{ label: "Manager Portal", path: "/management" }] : []),
               { label: "Flavours", path: "/flavours" },
               { label: "Philosophy", path: "/philosophy" },
             ].map((tab) => {
@@ -272,7 +274,7 @@ export default function LandingPage({
                 className="btn-ghost-pill profile-btn"
                 onClick={onOpenAuth}
                 type="button"
-                title={`${currentUser.first_name || "Account"} (${currentUser.role || "PATRON"})`}
+                title={currentUser.role && currentUser.role !== "PATRON" ? `${currentUser.first_name || "Account"} (${currentUser.role})` : (currentUser.first_name || "Account")}
               >
                 <span>{currentUser.first_name || "Account"}</span>
               </button>
@@ -900,10 +902,33 @@ export default function LandingPage({
             </div>
 
             <div className="footer-col">
-              <h4>Hours & Contact</h4>
+              <h4>Hours &amp; Contact</h4>
               <span>Mon – Sun: 10:00 – 22:00</span>
-              <span>Store Pickup & Express Delivery</span>
+              <span>Store Pickup &amp; Express Delivery</span>
               <span>hello@milkyshakes.com</span>
+              <button
+                type="button"
+                onClick={() => navigate("/management")}
+                style={{
+                  marginTop: "10px",
+                  background: "rgba(255, 255, 255, 0.12)",
+                  color: "#FDEECC",
+                  border: "1px solid rgba(255, 255, 255, 0.25)",
+                  borderRadius: "9999px",
+                  padding: "5px 12px",
+                  fontSize: "12px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  width: "fit-content",
+                  transition: "all 0.2s ease",
+                }}
+                title="Open Manager Operations Portal"
+              >
+                Manager Portal
+              </button>
             </div>
           </div>
         </div>

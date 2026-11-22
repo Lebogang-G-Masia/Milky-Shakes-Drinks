@@ -1789,3 +1789,406 @@
     align-items: flex-start;
   }
 }
+
+/* ==========================================================================
+   Coherent Manager & Patron Portal Styles:
+   1. Real-time Store Operational Banners (Paused, Rush, Announcement)
+   2. Out of Stock / Sold Out States
+   3. Live Kitchen Tracker Dialog & 4-Step Progress
+   ========================================================================== */
+
+/* Real-Time Store Operational Banners */
+.store-operational-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.store-operational-banner.banner-paused {
+  background: #FEF2F2;
+  border: 1.5px solid #FCA5A5;
+  color: #991B1B;
+}
+
+.store-operational-banner.banner-rush {
+  background: #FFFBEB;
+  border: 1.5px solid #FCD34D;
+  color: #92400E;
+}
+
+.store-operational-banner.banner-announcement {
+  background: #FFF8F1;
+  border: 1.5px solid rgba(186, 114, 76, 0.35);
+  color: #381F15;
+}
+
+.banner-icon-pill {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.banner-paused .banner-icon-pill {
+  background: #B91C1C;
+  color: #FFFFFF;
+}
+
+.banner-rush .banner-icon-pill {
+  background: #D97706;
+  color: #FFFFFF;
+}
+
+.banner-announcement .banner-icon-pill {
+  background: #BA724C;
+  color: #FFFFFF;
+}
+
+.banner-text-wrap {
+  flex: 1;
+}
+
+/* Out of Stock / Sold Out Styles */
+.btn-choice-card.is-sold-out,
+.btn-topping-dropper.is-sold-out {
+  opacity: 0.52;
+  filter: grayscale(0.75);
+  cursor: not-allowed !important;
+  background: #F4EFEB !important;
+  border-color: #DFD5CC !important;
+}
+
+.sold-out-badge {
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: #FEE2E2;
+  color: #B91C1C;
+  border: 1px solid #FCA5A5;
+  margin-top: 3px;
+  width: fit-content;
+}
+
+/* Live Kitchen Tracker Dialog */
+.order-tracker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 17, 11, 0.65);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.order-tracker-dialog {
+  background: #FFFFFF;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 60px -15px rgba(31, 17, 11, 0.4);
+  border: 1.5px solid rgba(56, 31, 21, 0.1);
+  overflow: hidden;
+}
+
+.tracker-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  background: #381F15;
+  color: #FFFFFF;
+}
+
+.tracker-brand-tag {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tracker-brand-cursive {
+  font-family: 'Caveat', cursive;
+  font-size: 28px;
+  font-weight: 700;
+  color: #FDF6EC;
+}
+
+.tracker-header-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.btn-tracker-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-tracker-close:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.tracker-dialog-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #FAF6F0;
+}
+
+.tracker-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tracker-intro {
+  font-size: 13px;
+  color: #6B5548;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.btn-tracker-refresh {
+  background: #FFFFFF;
+  border: 1.5px solid rgba(186, 114, 76, 0.35);
+  color: #BA724C;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.btn-tracker-refresh:hover {
+  background: #BA724C;
+  color: #FFFFFF;
+}
+
+.tracker-orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tracker-order-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 16px 18px;
+  border: 1px solid rgba(56, 31, 21, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tracker-order-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tracker-order-num {
+  font-weight: 800;
+  font-size: 15px;
+  color: #381F15;
+  margin-right: 8px;
+}
+
+.tracker-order-time {
+  font-size: 12px;
+  color: #8C7568;
+}
+
+.tracker-order-total-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tracker-status-pill {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tracker-status-pill.status-paid {
+  background: #EFF6FF;
+  color: #1E40AF;
+  border: 1px solid #BFDBFE;
+}
+
+.tracker-status-pill.status-preparing {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+  animation: pulsePrep 2s infinite ease-in-out;
+}
+
+.tracker-status-pill.status-ready {
+  background: #DCFCE7;
+  color: #15803D;
+  border: 1px solid #BBF7D0;
+  animation: pulsePrep 1.5s infinite ease-in-out;
+}
+
+.tracker-status-pill.status-collected {
+  background: #EEF2FF;
+  color: #4338CA;
+  border: 1px solid #C7D2FE;
+}
+
+@keyframes pulsePrep {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.tracker-order-amt {
+  font-size: 14px;
+  color: #381F15;
+}
+
+/* 4-Step Kitchen Progress Bar */
+.tracker-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px 4px;
+}
+
+.tracker-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.35;
+  transition: opacity 0.3s ease;
+}
+
+.tracker-step.is-active {
+  opacity: 1;
+}
+
+.tracker-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #D1C7BD;
+}
+
+.tracker-step.is-active .tracker-dot {
+  background: #10B981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+}
+
+.tracker-step-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  color: #5C4336;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.tracker-bar {
+  flex: 1;
+  height: 2px;
+  background: #E8E0D5;
+  margin: 0 4px;
+  margin-bottom: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.tracker-bar.is-fill {
+  background: #10B981;
+}
+
+.tracker-drinks-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tracker-drink-tag {
+  background: #F5EFE6;
+  border: 1px solid rgba(56, 31, 21, 0.08);
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #5C4336;
+  padding: 3px 8px;
+}
+
+.tracker-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-view-receipt {
+  background: #381F15;
+  color: #FFFFFF;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-view-receipt:hover {
+  background: #BA724C;
+  transform: translateY(-1px);
+}
+
+.tracker-empty-state {
+  text-align: center;
+  padding: 36px 20px;
+  color: #8C7568;
+  font-size: 14px;
+}
+
+.tracker-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(186, 114, 76, 0.2);
+  border-top-color: #BA724C;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

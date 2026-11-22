@@ -23,6 +23,7 @@ import {
   generateOrdersCsv,
 } from '@milky-shakes/shared';
 import { requireAdminRole } from './middleware/rbac.js';
+import { sendOrderConfirmationEmail } from './emailService.js';
 
 const app = express();
 
@@ -494,6 +495,25 @@ app.post('/api/webhooks/payment', async (req, res) => {
       newValue: ORDER_STATUS.PAID,
     });
 
+    // Dispatch confirmation & tax invoice email if recipient email is available
+    const recipientEmail = req.body.patronEmail || req.body.customerEmail || existingOrder?.customerEmail;
+    if (recipientEmail) {
+      try {
+        const emailResult = await sendOrderConfirmationEmail({
+          to: recipientEmail,
+          customerName: req.body.customerName || existingOrder?.customerName || 'Valued Customer',
+          order: existingOrder || receipt,
+          receipt,
+          fulfillment: receipt.fulfillment,
+        });
+        if (emailResult.success) {
+          paymentRecord.receipt_emailed = true;
+        }
+      } catch (err) {
+        console.warn('[Webhook] Confirmation email dispatch deferred or failed:', err.message);
+      }
+    }
+
     return res.status(200).json({
       success: true,
       status: ORDER_STATUS.PAID,
@@ -618,6 +638,47 @@ app.get('/api/orders/:orderId/receipt', (req, res) => {
   res.json({ success: true, receipt });
 });
 
+// FR-004: Send or resend order confirmation & tax invoice email to customer
+app.post('/api/orders/email-receipt', async (req, res) => {
+  const { order, receipt, customerEmail, customerName } = req.body;
+  if (!order && !receipt) {
+    return res.status(400).json({ success: false, error: 'Order or receipt object is required' });
+  }
+
+  const to = customerEmail || order?.customerEmail || order?.patronEmail || receipt?.customerEmail;
+  if (!to) {
+    return res.status(400).json({ success: false, error: 'customerEmail is required' });
+  }
+
+  const resolvedName = customerName || order?.customerName || order?.cardholderName || 'Valued Customer';
+  const resolvedOrder = order || receipt;
+  const resolvedReceipt = receipt || order?.payment || {};
+  const resolvedFulfillment = order?.fulfillment || receipt?.fulfillment || {};
+
+  try {
+    const result = await sendOrderConfirmationEmail({
+      to,
+      customerName: resolvedName,
+      order: resolvedOrder,
+      receipt: resolvedReceipt,
+      fulfillment: resolvedFulfillment,
+    });
+
+    if (result.success && resolvedOrder.id && paymentsStore.size > 0) {
+      for (const pay of paymentsStore.values()) {
+        if (pay.order_id === resolvedOrder.id) {
+          pay.receipt_emailed = true;
+        }
+      }
+    }
+
+    return res.json(result);
+  } catch (err) {
+    console.error('[API] /api/orders/email-receipt error:', err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ==========================================
 // FR-005: Management Oversight & Filtered Reporting (AC-FR-005.1, AC-FR-005.2, AC-FR-005.3)
 // ==========================================
@@ -709,6 +770,429 @@ app.get('/api/admin/reports/export', requireAdminRole, (req, res) => {
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.send(csv);
+});
+
+// ==========================================
+// FR-005+: Operational Order Management & Inventory Control
+// ==========================================
+
+export const inventoryStore = new Map([
+  ['flav-1', { id: 'flav-1', name: 'Cookies & Cream', category: 'Signature Artisan', price: 48.0, stockStatus: 'IN_STOCK', remainingPortions: 45, featured: true }],
+  ['flav-2', { id: 'flav-2', name: 'Wild Strawberry', category: 'Signature Artisan', price: 45.0, stockStatus: 'IN_STOCK', remainingPortions: 32, featured: true }],
+  ['flav-3', { id: 'flav-3', name: 'Mint Chocolate Chip', category: 'Signature Artisan', price: 44.0, stockStatus: 'IN_STOCK', remainingPortions: 28, featured: true }],
+  ['flav-4', { id: 'flav-4', name: 'Belgian Chocolate', category: 'Classic Indulgence', price: 48.0, stockStatus: 'IN_STOCK', remainingPortions: 50, featured: false }],
+  ['flav-5', { id: 'flav-5', name: 'Madagascan Vanilla', category: 'Classic Indulgence', price: 38.0, stockStatus: 'IN_STOCK', remainingPortions: 60, featured: false }],
+  ['flav-6', { id: 'flav-6', name: 'Salted Caramel', category: 'Signature Artisan', price: 48.0, stockStatus: 'IN_STOCK', remainingPortions: 22, featured: true }],
+  ['flav-7', { id: 'flav-7', name: 'Peanut Butter Blast', category: 'Seasonal Special', price: 52.0, stockStatus: 'LOW_STOCK', remainingPortions: 8, featured: false }],
+  ['flav-8', { id: 'flav-8', name: 'Bubblegum Dream', category: 'Fun Retro', price: 39.0, stockStatus: 'LOW_STOCK', remainingPortions: 4, featured: false }],
+  ['top-1', { id: 'top-1', name: 'Whipped Double Cream', category: 'Topping', price: 12.0, stockStatus: 'IN_STOCK', remainingPortions: 75, featured: false }],
+  ['top-2', { id: 'top-2', name: 'Crushed Cadbury Flake', category: 'Topping', price: 14.0, stockStatus: 'LOW_STOCK', remainingPortions: 5, featured: false }],
+  ['top-3', { id: 'top-3', name: 'Oreo Crumb Dust', category: 'Topping', price: 12.0, stockStatus: 'IN_STOCK', remainingPortions: 42, featured: false }],
+  ['top-4', { id: 'top-4', name: 'Rainbow Sprinkles', category: 'Topping', price: 8.0, stockStatus: 'IN_STOCK', remainingPortions: 90, featured: false }],
+  ['top-5', { id: 'top-5', name: 'Caramel Fudge Cubes', category: 'Topping', price: 15.0, stockStatus: 'IN_STOCK', remainingPortions: 24, featured: false }],
+  ['top-6', { id: 'top-6', name: 'Rich Chocolate Drops', category: 'Topping', price: 10.0, stockStatus: 'IN_STOCK', remainingPortions: 50, featured: false }],
+]);
+
+export let storeStatus = {
+  mode: 'OPEN', // 'OPEN' | 'BUSY' | 'PAUSED'
+  leadManager: 'Sarah Connor',
+  shiftCode: 'SHIFT-A204',
+  activeBaristas: 3,
+  couriersAvailable: 2,
+  averagePrepMinutes: 7.5,
+  rushExtraMinutes: 0,
+  announcement: 'Fresh organic strawberries delivered this morning! Highlight Wild Strawberry specials.',
+  updatedAt: new Date().toISOString(),
+};
+
+// 5. Update Order Status in Real-Time (AC-FR-005.1 / Kitchen Operations)
+app.patch('/api/admin/orders/:orderId/status', requireAdminRole, (req, res) => {
+  const { orderId } = req.params;
+  const { status, note } = req.body;
+
+  if (!status || !Object.values(ORDER_STATUS).includes(status)) {
+    return res.status(400).json({
+      success: false,
+      error: `Invalid status: "${status}". Valid statuses: ${Object.values(ORDER_STATUS).join(', ')}`,
+    });
+  }
+
+  seedSampleOrdersIfEmpty();
+  let order = ordersStore.get(orderId);
+
+  // If order is referenced by orderNumber
+  if (!order) {
+    for (const ord of ordersStore.values()) {
+      if (ord.orderNumber === orderId) {
+        order = ord;
+        break;
+      }
+    }
+  }
+
+  if (!order) {
+    return res.status(404).json({ success: false, error: `Order "${orderId}" not found` });
+  }
+
+  const previousStatus = order.status;
+  order.status = status;
+  order.updatedAt = new Date().toISOString();
+  if (note) order.managerNote = note;
+
+  recordAuditLog({
+    action: AUDIT_ACTIONS.STATUS_CHANGED,
+    actorRole: req.adminRole || USER_ROLES.MANAGER,
+    entityType: 'orders',
+    entityId: order.id,
+    previousValue: previousStatus,
+    newValue: `${status}${note ? ` (Note: ${note})` : ''}`,
+  });
+
+  res.json({
+    success: true,
+    message: `Order ${order.orderNumber} successfully updated to ${status}`,
+    order: sanitizeOrderForAdmin(order),
+  });
+});
+
+// 6. Get & Update Inventory Items
+app.get('/api/admin/inventory', requireAdminRole, (req, res) => {
+  res.json({
+    success: true,
+    inventory: Array.from(inventoryStore.values()),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.patch('/api/admin/inventory/:itemId', requireAdminRole, (req, res) => {
+  const { itemId } = req.params;
+  const { stockStatus, remainingPortions, price, featured } = req.body;
+
+  const item = inventoryStore.get(itemId);
+  if (!item) {
+    return res.status(404).json({ success: false, error: `Inventory item "${itemId}" not found` });
+  }
+
+  const previousState = JSON.stringify(item);
+  if (stockStatus !== undefined) item.stockStatus = stockStatus;
+  if (remainingPortions !== undefined) item.remainingPortions = remainingPortions;
+  if (price !== undefined) item.price = Number(price);
+  if (featured !== undefined) item.featured = Boolean(featured);
+  item.updatedAt = new Date().toISOString();
+
+  recordAuditLog({
+    action: 'INVENTORY_UPDATED',
+    actorRole: req.adminRole || USER_ROLES.MANAGER,
+    entityType: 'inventory',
+    entityId: itemId,
+    previousValue: previousState,
+    newValue: JSON.stringify(item),
+  });
+
+  res.json({
+    success: true,
+    item,
+    message: `Inventory item ${item.name} updated.`,
+  });
+});
+
+// 7. Get & Update Store Operational Status
+app.get('/api/admin/store-status', requireAdminRole, (req, res) => {
+  res.json({
+    success: true,
+    storeStatus,
+  });
+});
+
+app.patch('/api/admin/store-status', requireAdminRole, (req, res) => {
+  const { mode, rushExtraMinutes, announcement, leadManager } = req.body;
+
+  const previousState = JSON.stringify(storeStatus);
+  if (mode) storeStatus.mode = mode;
+  if (rushExtraMinutes !== undefined) storeStatus.rushExtraMinutes = Number(rushExtraMinutes);
+  if (announcement !== undefined) storeStatus.announcement = announcement;
+  if (leadManager) storeStatus.leadManager = leadManager;
+  storeStatus.updatedAt = new Date().toISOString();
+
+  recordAuditLog({
+    action: 'STORE_STATUS_CHANGED',
+    actorRole: req.adminRole || USER_ROLES.MANAGER,
+    entityType: 'store_settings',
+    entityId: 'main-store',
+    previousValue: previousState,
+    newValue: JSON.stringify(storeStatus),
+  });
+
+  res.json({
+    success: true,
+    storeStatus,
+    message: `Store operational mode updated to ${storeStatus.mode}.`,
+  });
+});
+
+// ==========================================
+// MANDATORY #3 & #10: LOOKUP TABLE MANAGER & AUDIT TRAIL (URS 3.4.3 & 3.4.6)
+// ==========================================
+
+export const lookupsStore = {
+  flavours: [
+    { id: 'flav-strawberry', name: 'Strawberry', type: 'Signature Artisan', price: 35.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'flav-vanilla', name: 'Vanilla', type: 'Classic Indulgence', price: 32.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'flav-chocolate', name: 'Chocolate', type: 'Classic Indulgence', price: 38.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'flav-coffee', name: 'Coffee', type: 'Signature Artisan', price: 36.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'flav-banana', name: 'Banana', type: 'Fresh Fruit', price: 34.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'flav-oreo', name: 'Oreo', type: 'Signature Artisan', price: 42.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'flav-barone', name: 'Bar one', type: 'Decadent Special', price: 45.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'flav-mint', name: 'Mint Chocolate Chip', type: 'Signature Artisan', price: 44.0, isActive: true, updatedAt: new Date().toISOString() },
+  ],
+  toppings: [
+    { id: 'top-strawberries', name: 'Frozen Strawberries', type: 'Topping', price: 8.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'top-banana', name: 'Freeze-dried banana', type: 'Topping', price: 10.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'top-oreo', name: 'Oreo crumbs', type: 'Topping', price: 8.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'top-barone', name: 'Bar one syrup', type: 'Topping', price: 10.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'top-coffee', name: 'Coffee powder with chocolate', type: 'Topping', price: 8.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'top-vermicelli', name: 'Chocolate vermicelli', type: 'Topping', price: 6.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'top-cream', name: 'Whipped Double Cream', type: 'Topping', price: 12.0, isActive: true, updatedAt: new Date().toISOString() },
+  ],
+  consistencies: [
+    { id: 'cons-double-thick', name: 'Double thick', type: 'Consistency', extraPrice: 10.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'cons-thick', name: 'Thick', type: 'Consistency', extraPrice: 5.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'cons-milky', name: 'Milky', type: 'Consistency', extraPrice: 0.0, isActive: true, updatedAt: new Date().toISOString() },
+    { id: 'cons-icy', name: 'Icy', type: 'Consistency', extraPrice: 0.0, isActive: true, updatedAt: new Date().toISOString() },
+  ],
+  configurations: {
+    MIN_DRINKS_PER_ORDER: { key: 'MIN_DRINKS_PER_ORDER', value: 1, label: 'Minimum Drinks Per Order', description: 'Lowest allowable drinks per order', updatedAt: new Date().toISOString() },
+    MAX_DRINKS_PER_ORDER: { key: 'MAX_DRINKS_PER_ORDER', value: 10, label: 'Maximum Drinks Per Order', description: 'Highest allowable drinks per order', updatedAt: new Date().toISOString() },
+    VAT_PERCENTAGE: { key: 'VAT_PERCENTAGE', value: 15.0, label: 'VAT Rate (%)', description: 'Statutory Value-Added Tax percentage', updatedAt: new Date().toISOString() },
+    DISCOUNT_TIER_1_ORDERS: { key: 'DISCOUNT_TIER_1_ORDERS', value: 3, label: 'Discount Tier 1 Min Orders', description: 'Completed orders needed for 5% discount', updatedAt: new Date().toISOString() },
+    DISCOUNT_TIER_1_PERCENT: { key: 'DISCOUNT_TIER_1_PERCENT', value: 5, label: 'Discount Tier 1 (%)', description: 'First tier discount percentage', updatedAt: new Date().toISOString() },
+    DISCOUNT_TIER_2_ORDERS: { key: 'DISCOUNT_TIER_2_ORDERS', value: 5, label: 'Discount Tier 2 Min Orders', description: 'Completed orders needed for 10% discount', updatedAt: new Date().toISOString() },
+    DISCOUNT_TIER_2_PERCENT: { key: 'DISCOUNT_TIER_2_PERCENT', value: 10, label: 'Discount Tier 2 (%)', description: 'Second tier discount percentage', updatedAt: new Date().toISOString() },
+    DISCOUNT_TIER_3_ORDERS: { key: 'DISCOUNT_TIER_3_ORDERS', value: 10, label: 'Discount Tier 3 Min Orders', description: 'Completed orders needed for 15% discount', updatedAt: new Date().toISOString() },
+    DISCOUNT_TIER_3_PERCENT: { key: 'DISCOUNT_TIER_3_PERCENT', value: 15, label: 'Discount Tier 3 (%)', description: 'Third tier discount percentage', updatedAt: new Date().toISOString() },
+    MAX_DISCOUNT_CAP: { key: 'MAX_DISCOUNT_CAP', value: 100.0, label: 'Max Discount Cap (R)', description: 'Maximum allowable frequent customer discount per order in Rand', updatedAt: new Date().toISOString() },
+  },
+};
+
+// Public Lookup Retrieval (Catalog + Config)
+app.get('/api/lookups', (req, res) => {
+  res.json({
+    success: true,
+    flavours: lookupsStore.flavours,
+    toppings: lookupsStore.toppings,
+    consistencies: lookupsStore.consistencies,
+    configurations: lookupsStore.configurations,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Admin Lookup: Add New Item
+app.post('/api/admin/lookups/:type', requireAdminRole, (req, res) => {
+  const { type } = req.params; // 'flavours' | 'toppings'
+  const { name, price, itemType } = req.body;
+
+  if (!name || price === undefined) {
+    return res.status(400).json({ success: false, error: 'Name and price are required' });
+  }
+
+  const list = lookupsStore[type];
+  if (!list) {
+    return res.status(400).json({ success: false, error: `Invalid lookup type "${type}"` });
+  }
+
+  const id = `${type.slice(0, 4)}-${Date.now()}`;
+  const newItem = {
+    id,
+    name: name.trim(),
+    type: itemType || (type === 'flavours' ? 'Signature Artisan' : 'Topping'),
+    price: Math.max(0, Number(price)),
+    isActive: true,
+    updatedAt: new Date().toISOString(),
+  };
+
+  list.push(newItem);
+
+  recordAuditLog({
+    action: 'LOOKUP_CREATED',
+    actorRole: req.adminRole || USER_ROLES.MANAGER,
+    entityType: type.toUpperCase(),
+    entityId: id,
+    fieldName: 'all',
+    previousValue: null,
+    newValue: JSON.stringify(newItem),
+  });
+
+  res.status(201).json({ success: true, item: newItem, message: `${name} added to ${type}` });
+});
+
+// Admin Lookup: Update Item (Price, Name, Active Status)
+app.patch('/api/admin/lookups/:type/:id', requireAdminRole, (req, res) => {
+  const { type, id } = req.params;
+  const { name, price, extraPrice, itemType, isActive } = req.body;
+
+  const list = lookupsStore[type];
+  if (!list) {
+    return res.status(400).json({ success: false, error: `Invalid lookup type "${type}"` });
+  }
+
+  const item = list.find((i) => i.id === id);
+  if (!item) {
+    return res.status(404).json({ success: false, error: `Item "${id}" not found in ${type}` });
+  }
+
+  const previousState = JSON.stringify(item);
+  let changedField = '';
+  let prevVal = '';
+  let newVal = '';
+
+  if (name !== undefined && name.trim() !== item.name) {
+    changedField = 'name';
+    prevVal = item.name;
+    newVal = name.trim();
+    item.name = name.trim();
+  }
+  if (price !== undefined && Number(price) !== item.price) {
+    changedField = 'price';
+    prevVal = `R${item.price.toFixed(2)}`;
+    newVal = `R${Number(price).toFixed(2)}`;
+    item.price = Math.max(0, Number(price));
+  }
+  if (extraPrice !== undefined && Number(extraPrice) !== item.extraPrice) {
+    changedField = 'extraPrice';
+    prevVal = `R${(item.extraPrice || 0).toFixed(2)}`;
+    newVal = `R${Number(extraPrice).toFixed(2)}`;
+    item.extraPrice = Math.max(0, Number(extraPrice));
+  }
+  if (itemType !== undefined) {
+    item.type = itemType;
+  }
+  if (isActive !== undefined && Boolean(isActive) !== item.isActive) {
+    changedField = 'isActive';
+    prevVal = String(item.isActive);
+    newVal = String(Boolean(isActive));
+    item.isActive = Boolean(isActive);
+  }
+
+  item.updatedAt = new Date().toISOString();
+
+  recordAuditLog({
+    action: 'LOOKUP_UPDATED',
+    actorRole: req.adminRole || USER_ROLES.MANAGER,
+    entityType: type.toUpperCase(),
+    entityId: id,
+    fieldName: changedField || 'multiple',
+    previousValue: prevVal || previousState,
+    newValue: newVal || JSON.stringify(item),
+  });
+
+  res.json({ success: true, item, message: `Updated ${item.name} in ${type}` });
+});
+
+// Admin Lookup: Delete / Deactivate Item
+app.delete('/api/admin/lookups/:type/:id', requireAdminRole, (req, res) => {
+  const { type, id } = req.params;
+  const list = lookupsStore[type];
+  if (!list) {
+    return res.status(400).json({ success: false, error: `Invalid lookup type "${type}"` });
+  }
+
+  const item = list.find((i) => i.id === id);
+  if (!item) {
+    return res.status(404).json({ success: false, error: `Item "${id}" not found in ${type}` });
+  }
+
+  const previousState = JSON.stringify(item);
+  item.isActive = false;
+  item.updatedAt = new Date().toISOString();
+
+  recordAuditLog({
+    action: 'LOOKUP_DELETED',
+    actorRole: req.adminRole || USER_ROLES.MANAGER,
+    entityType: type.toUpperCase(),
+    entityId: id,
+    fieldName: 'isActive',
+    previousValue: previousState,
+    newValue: JSON.stringify(item),
+  });
+
+  res.json({ success: true, message: `Deactivated ${item.name}` });
+});
+
+// Admin Configurations: Update Setting (VAT, Min/Max drinks, Discount rules)
+app.patch('/api/admin/configurations/:key', requireAdminRole, (req, res) => {
+  const { key } = req.params;
+  const { value } = req.body;
+
+  if (value === undefined) {
+    return res.status(400).json({ success: false, error: 'Value is required' });
+  }
+
+  const config = lookupsStore.configurations[key];
+  if (!config) {
+    return res.status(404).json({ success: false, error: `Configuration "${key}" not found` });
+  }
+
+  const previousValue = String(config.value);
+  config.value = typeof config.value === 'number' ? Number(value) : value;
+  config.updatedAt = new Date().toISOString();
+
+  recordAuditLog({
+    action: 'CONFIG_UPDATED',
+    actorRole: req.adminRole || USER_ROLES.MANAGER,
+    entityType: 'CONFIGURATION',
+    entityId: key,
+    fieldName: key,
+    previousValue,
+    newValue: String(config.value),
+  });
+
+  res.json({ success: true, config, message: `Configuration ${config.label} updated to ${config.value}` });
+});
+
+// ==========================================
+// MANDATORY #9: PATRON ORDER HISTORY & RE-PRINT PORTAL (URS 3.4.7)
+// ==========================================
+
+app.get('/api/patron/orders', (req, res) => {
+  const email = (req.headers['x-user-email'] || req.query.email || '').toLowerCase().trim();
+  const userId = req.headers['x-user-id'] || req.query.userId || '';
+
+  const allOrders = getAllOrders();
+  let patronOrders = [];
+
+  if (email || userId) {
+    patronOrders = allOrders.filter((o) => {
+      const matchEmail = email && (o.customerEmail || '').toLowerCase() === email;
+      const matchId = userId && (o.userId === userId || o.patronId === userId);
+      return matchEmail || matchId;
+    });
+  } else {
+    // If no filter, return sample completed orders for demo
+    patronOrders = allOrders.slice(0, 5);
+  }
+
+  // Calculate patron loyalty status
+  const completedCount = patronOrders.filter((o) => o.status === ORDER_STATUS.PAID || o.status === ORDER_STATUS.COLLECTED).length;
+  let currentDiscountTier = 0;
+  if (completedCount >= lookupsStore.configurations.DISCOUNT_TIER_3_ORDERS.value) {
+    currentDiscountTier = lookupsStore.configurations.DISCOUNT_TIER_3_PERCENT.value;
+  } else if (completedCount >= lookupsStore.configurations.DISCOUNT_TIER_2_ORDERS.value) {
+    currentDiscountTier = lookupsStore.configurations.DISCOUNT_TIER_2_PERCENT.value;
+  } else if (completedCount >= lookupsStore.configurations.DISCOUNT_TIER_1_ORDERS.value) {
+    currentDiscountTier = lookupsStore.configurations.DISCOUNT_TIER_1_PERCENT.value;
+  }
+
+  res.json({
+    success: true,
+    orders: patronOrders,
+    loyalty: {
+      completedOrdersCount: completedCount,
+      eligibleDiscountPercent: currentDiscountTier,
+      nextTierThreshold: completedCount < 3 ? 3 : completedCount < 5 ? 5 : completedCount < 10 ? 10 : 10,
+      nextTierPercent: completedCount < 3 ? 5 : completedCount < 5 ? 10 : completedCount < 10 ? 15 : 15,
+    },
+    count: patronOrders.length,
+  });
 });
 
 export default app;

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { supabase } from './supabaseClient';
 import { formatCurrency } from '@milky-shakes/shared';
 import './ReceiptPrinter.css';
 
@@ -98,6 +99,26 @@ export function IconSparkles({ className = '', size = 14 }) {
       aria-hidden="true"
     >
       <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+    </svg>
+  );
+}
+
+export function IconMail({ className = '', size = 16 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L1 7" />
     </svg>
   );
 }
@@ -278,6 +299,112 @@ export function MilkyReceiptPrinter({
   autoPlay = true,
 }) {
   const [stage, setStage] = useState(() => (autoPlay ? 'processing' : 'complete'));
+  const [emailTarget, setEmailTarget] = useState(() => order?.customerEmail || '');
+  const [emailStatus, setEmailStatus] = useState(() => (order?.payment?.receiptEmailed ? 'sent' : 'idle'));
+  const [emailMessage, setEmailMessage] = useState('');
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+
+  useEffect(() => {
+    if (order?.payment?.receiptEmailed) {
+      setEmailStatus('sent');
+    }
+  }, [order?.payment?.receiptEmailed]);
+
+  async function handleSendEmail(target) {
+    const recipient = (target || emailTarget || order?.customerEmail || '').trim();
+    if (!recipient) {
+      setIsEditingEmail(true);
+      return;
+    }
+    setEmailStatus('sending');
+    setEmailMessage('');
+    try {
+      const res = await fetch('/api/orders/email-receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerEmail: recipient,
+          customerName: order?.customerName,
+          order,
+          receipt: order?.payment,
+        }),
+      });
+      const text = await res.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error(`Server returned non-JSON response (${res.status || 'No status'}).`);
+      }
+      if (data.success) {
+        setEmailStatus('sent');
+        setEmailMessage(`Tax invoice & receipt sent to ${recipient}`);
+        setIsEditingEmail(false);
+      } else {
+        setEmailStatus('error');
+        setEmailMessage(data.error || 'Failed to dispatch receipt email.');
+      }
+    } catch (err) {
+      setEmailStatus('error');
+      setEmailMessage(err.message || 'Network error while dispatching receipt email.');
+    }
+  }
+
+  const [liveStatus, setLiveStatus] = useState(order?.status || 'PAID');
+
+  // Coherent Real-Time Status Synchronization with Supabase & Manager Portal
+  useEffect(() => {
+    if (!order) return;
+    let isMounted = true;
+    const orderKey = order.orderId || order.id;
+    const orderNum = order.orderNumber || order.order_number;
+
+    async function checkLiveStatus() {
+      if (!orderKey && !orderNum) return;
+      try {
+        const { data, error } = await supabase
+          .from('audit_logs')
+          .select('*')
+          .eq('action', 'STATUS_CHANGED')
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0 && isMounted) {
+          const match = data.find(
+            (log) =>
+              (orderKey && log.entity_id === orderKey) ||
+              (orderNum && log.entity_id === orderNum)
+          );
+          if (match?.new_value) {
+            const rawStatus = match.new_value.split(' ')[0];
+            setLiveStatus(rawStatus);
+          }
+        }
+      } catch (e) {
+        console.warn('Receipt printer status poll error:', e);
+      }
+    }
+
+    checkLiveStatus();
+    const interval = setInterval(checkLiveStatus, 3000);
+
+    const handleLocalUpdate = (e) => {
+      const { orderId: updatedId, newStatus } = e.detail || {};
+      if (
+        (orderKey && updatedId === orderKey) ||
+        (orderNum && updatedId === orderNum)
+      ) {
+        setLiveStatus(newStatus);
+      }
+    };
+
+    window.addEventListener('milky:order_status_update', handleLocalUpdate);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      window.removeEventListener('milky:order_status_update', handleLocalUpdate);
+    };
+  }, [order]);
 
   useEffect(() => {
     if (!autoPlay) return;
@@ -337,7 +464,39 @@ export function MilkyReceiptPrinter({
               <span className="printer-screen-order-num">#{orderNum}</span>
               <strong className="printer-screen-total">{formatCurrency(totalAmount)}</strong>
             </div>
-            <ReceiptPrinter.Status />
+            {stage === 'complete' ? (
+              <div className="printer-live-status-block">
+                <div className="printer-live-status-header">
+                  <span className="printer-live-label">LIVE STATUS:</span>
+                  <span className={`printer-live-pill status-${liveStatus.toLowerCase()}`}>
+                    {liveStatus}
+                  </span>
+                </div>
+                <div className="printer-stepper-progress">
+                  <div className={`stepper-step ${['PAID', 'PREPARING', 'READY', 'COLLECTED'].includes(liveStatus) ? 'is-complete' : ''}`}>
+                    <span className="step-dot" />
+                    <span className="step-name">Paid</span>
+                  </div>
+                  <div className={`stepper-bar ${['PREPARING', 'READY', 'COLLECTED'].includes(liveStatus) ? 'is-fill' : ''}`} />
+                  <div className={`stepper-step ${['PREPARING', 'READY', 'COLLECTED'].includes(liveStatus) ? 'is-complete' : ''}`}>
+                    <span className="step-dot" />
+                    <span className="step-name">Churning</span>
+                  </div>
+                  <div className={`stepper-bar ${['READY', 'COLLECTED'].includes(liveStatus) ? 'is-fill' : ''}`} />
+                  <div className={`stepper-step ${['READY', 'COLLECTED'].includes(liveStatus) ? 'is-complete' : ''}`}>
+                    <span className="step-dot" />
+                    <span className="step-name">Ready</span>
+                  </div>
+                  <div className={`stepper-bar ${liveStatus === 'COLLECTED' ? 'is-fill' : ''}`} />
+                  <div className={`stepper-step ${liveStatus === 'COLLECTED' ? 'is-complete' : ''}`}>
+                    <span className="step-dot" />
+                    <span className="step-name">Collected</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <ReceiptPrinter.Status />
+            )}
           </ReceiptPrinter.Screen>
         </ReceiptPrinter.Machine>
 
@@ -363,6 +522,12 @@ export function MilkyReceiptPrinter({
               <div className="paper-meta-row">
                 <span className="paper-meta-label">DATE & TIME:</span>
                 <span className="paper-meta-val">{settledAt}</span>
+              </div>
+              <div className="paper-meta-row">
+                <span className="paper-meta-label">CURRENT STATUS:</span>
+                <span className={`paper-status-tag status-${liveStatus.toLowerCase()}`}>
+                  {liveStatus}
+                </span>
               </div>
               <div className="paper-meta-row">
                 <span className="paper-meta-label">FULFILLMENT:</span>
@@ -441,6 +606,12 @@ export function MilkyReceiptPrinter({
                 <span>AUTH STATUS:</span>
                 <span style={{ color: '#15803D', fontWeight: 800 }}>APPROVED / SETTLED</span>
               </div>
+              <div className="paper-meta-row">
+                <span>TAX INVOICE:</span>
+                <span style={{ color: emailStatus === 'sent' || order.payment?.receiptEmailed ? '#15803D' : '#BA724C', fontWeight: 700 }}>
+                  {emailStatus === 'sent' || order.payment?.receiptEmailed ? `EMAILED (${emailTarget || order.customerEmail})` : 'DIGITAL RECORD'}
+                </span>
+              </div>
             </div>
 
             {/* Barcode */}
@@ -458,6 +629,47 @@ export function MilkyReceiptPrinter({
         </ReceiptPrinter.Output>
       </ReceiptPrinter.Root>
 
+      {/* Email delivery confirmation & prompt */}
+      {(emailStatus === 'sent' || order.payment?.receiptEmailed) && (
+        <div className="receipt-email-banner is-success" role="status">
+          <IconCheckCircle size={15} />
+          <span>Tax invoice & receipt sent to <strong>{emailTarget || order.customerEmail}</strong></span>
+        </div>
+      )}
+
+      {emailStatus === 'error' && (
+        <div className="receipt-email-banner is-error" role="alert">
+          <span>{emailMessage}</span>
+        </div>
+      )}
+
+      {isEditingEmail && (
+        <div className="receipt-email-prompt">
+          <input
+            type="email"
+            className="receipt-email-input"
+            placeholder="Enter receipt email"
+            value={emailTarget}
+            onChange={(e) => setEmailTarget(e.target.value)}
+          />
+          <button
+            type="button"
+            className="btn-printer-action is-primary"
+            onClick={() => handleSendEmail(emailTarget)}
+            disabled={emailStatus === 'sending' || !emailTarget.trim()}
+          >
+            {emailStatus === 'sending' ? 'Sending...' : 'Send'}
+          </button>
+          <button
+            type="button"
+            className="btn-printer-action is-ghost"
+            onClick={() => setIsEditingEmail(false)}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
       {/* Action Buttons beneath printer */}
       <div className="receipt-printer-actions">
         <button
@@ -468,6 +680,26 @@ export function MilkyReceiptPrinter({
         >
           <IconPrint size={16} />
           Print Receipt
+        </button>
+        <button
+          type="button"
+          className="btn-printer-action is-email"
+          onClick={() => {
+            if (!emailTarget && !order.customerEmail) {
+              setIsEditingEmail(true);
+            } else {
+              handleSendEmail(emailTarget);
+            }
+          }}
+          disabled={emailStatus === 'sending'}
+          title="Send or resend tax invoice receipt to email"
+        >
+          <IconMail size={15} />
+          {emailStatus === 'sending'
+            ? 'Sending Email...'
+            : emailStatus === 'sent' || order.payment?.receiptEmailed
+            ? 'Resend Email'
+            : 'Email Receipt'}
         </button>
         <button
           type="button"

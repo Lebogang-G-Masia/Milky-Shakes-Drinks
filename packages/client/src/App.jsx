@@ -7,6 +7,7 @@ import FlavoursPage from "./FlavoursPage";
 import PhilosophyPage from "./PhilosophyPage";
 import FaqPage from "./FaqPage";
 import ManagementDashboard from "./ManagementDashboard";
+import PatronOrdersPage from "./PatronOrdersPage";
 import { USER_ROLES } from "@milky-shakes/shared";
 
 const AUTH_STORAGE_KEY = "milky_auth_user";
@@ -68,6 +69,15 @@ function AppContent() {
     );
   }
 
+  if (path === "/my-orders" || path === "/orders-history" || path === "/history") {
+    return (
+      <PatronOrdersPage
+        currentUser={currentUser}
+        onSignOut={handleSignOut}
+      />
+    );
+  }
+
   if (path === "/flavours" || path === "/flavors") {
     return (
       <FlavoursPage
@@ -104,21 +114,23 @@ function AppContent() {
     );
   }
 
-  if (path === "/management") {
-    if (currentUser?.role === USER_ROLES.MANAGER || currentUser?.role === USER_ROLES.STAFF) {
-      return (
-        <ManagementDashboard
-          currentUser={currentUser}
-          onNavigateToOrder={() => navigate("/orders")}
-          onSignOut={handleSignOut}
-        />
-      );
-    }
-    // If unauthenticated or not manager/staff, route to auth with returnUrl
+  if (path === "/management" || path === "/manager" || path === "/admin") {
+    // Allows direct access to manager operations suite for review and testing,
+    // with built-in RBAC switcher (AC-FR-005.3) to test Patron 403 vs Manager/Staff roles
+    const managerUser = currentUser?.role === USER_ROLES.MANAGER || currentUser?.role === USER_ROLES.STAFF
+      ? currentUser
+      : {
+          id: "mgr-demo-01",
+          name: currentUser?.name || "Sarah Connor",
+          email: currentUser?.email || "manager@milkyshakes.com",
+          role: USER_ROLES.MANAGER,
+        };
+
     return (
-      <AuthPage
-        onAuthSuccess={handleAuthSuccess}
-        onBackToLanding={() => navigate("/")}
+      <ManagementDashboard
+        currentUser={managerUser}
+        onNavigateToOrder={() => navigate("/orders")}
+        onSignOut={handleSignOut}
       />
     );
   }

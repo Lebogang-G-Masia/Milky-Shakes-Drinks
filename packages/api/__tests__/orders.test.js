@@ -477,5 +477,47 @@ describe('Milky Shakes Drinks Custom Order Placement (FR-002)', () => {
       assert.strictEqual(receiptData.receipt.orderId, simOrderId);
       assert.strictEqual(receiptData.receipt.receiptNumber, simData.receipt.receiptNumber);
     });
+
+    it('POST /api/orders/email-receipt validates input requirements', async () => {
+      // 1. Missing body
+      const res1 = await fetch(`${baseUrl}/api/orders/email-receipt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      assert.strictEqual(res1.status, 400);
+
+      // 2. Missing email
+      const res2 = await fetch(`${baseUrl}/api/orders/email-receipt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order: { orderNumber: 'MSD-111111' },
+        }),
+      });
+      assert.strictEqual(res2.status, 400);
+
+      // 3. Valid payload handles gracefully
+      const res3 = await fetch(`${baseUrl}/api/orders/email-receipt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerEmail: 'test.patron@example.com',
+          customerName: 'Patron Tester',
+          order: {
+            orderNumber: 'MSD-111111',
+            items: [{ flavour: 'Chocolate', cost: 40 }],
+            totals: { total: 40, subtotal: 40 },
+          },
+          receipt: {
+            receiptNumber: 'RCP-20261122-111111',
+            paymentMethod: 'Visa',
+          },
+        }),
+      });
+      assert.strictEqual(res3.status, 200);
+      const data3 = await res3.json();
+      assert.ok('success' in data3);
+    });
   });
 });

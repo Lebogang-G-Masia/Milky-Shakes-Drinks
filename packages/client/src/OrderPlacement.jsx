@@ -197,12 +197,12 @@ function isUuid(val) {
 
 // Helper to guarantee valid RFC email format
 function normalizeUserEmail(rawEmail) {
-  if (!rawEmail) return 'patron@milkyshakes.com';
+  if (!rawEmail) return 'customer@milkyshakes.com';
   const trimmed = rawEmail.trim();
   if (trimmed.includes('@') && trimmed.includes('.')) {
     return trimmed.toLowerCase();
   }
-  const sanitized = trimmed.replace(/[^a-zA-Z0-9._-]/g, '').toLowerCase() || 'patron';
+  const sanitized = trimmed.replace(/[^a-zA-Z0-9._-]/g, '').toLowerCase() || 'customer';
   return `${sanitized}@milkyshakes.com`;
 }
 
@@ -434,6 +434,25 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
   const [discountCodeInput, setDiscountCodeInput] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState(() => initialDraft?.appliedDiscount || null);
   const [discountStatus, setDiscountStatus] = useState(null);
+  const [patronCompletedOrders, setPatronCompletedOrders] = useState(() => currentUser?.completed_orders_count || 0);
+
+  // Fetch patron completed orders for Frequent Customer Discount (URS 3.4.5)
+  useEffect(() => {
+    if (currentUser?.id || currentUser?.email) {
+      const email = currentUser.email || '';
+      const userId = currentUser.id || '';
+      fetch(`/api/patron/orders?email=${encodeURIComponent(email)}&userId=${encodeURIComponent(userId)}`, {
+        headers: { 'x-user-email': email, 'x-user-id': userId },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.loyalty && typeof data.loyalty.completedOrdersCount === 'number') {
+            setPatronCompletedOrders(data.loyalty.completedOrdersCount);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [currentUser]);
 
   // Auth prompt modal for unauthenticated checkout
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -442,9 +461,24 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [pendingOrderData, setPendingOrderData] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('CARD'); // 'CARD' | 'EFT'
-  const [cardholderName, setCardholderName] = useState(
-    currentUser?.first_name ? `${currentUser.first_name} Patron` : 'Alex Patron'
-  );
+  const [cardholderName, setCardholderName] = useState(() => {
+    if (currentUser?.name) return currentUser.name;
+    if (currentUser?.first_name) {
+      return currentUser.last_name
+        ? `${currentUser.first_name} ${currentUser.last_name}`.trim()
+        : currentUser.first_name.trim();
+    }
+    return '';
+  });
+
+  useEffect(() => {
+    if (currentUser && !cardholderName) {
+      const name = currentUser.name || (currentUser.first_name
+        ? `${currentUser.first_name}${currentUser.last_name ? ` ${currentUser.last_name}` : ''}`.trim()
+        : '');
+      if (name) setCardholderName(name);
+    }
+  }, [currentUser]);
   const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
   const [cardExpiry, setCardExpiry] = useState('12/28');
   const [cardCvc, setCardCvc] = useState('123');
@@ -453,6 +487,14 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [placedOrder, setPlacedOrder] = useState(null);
+
+  // Store Operational State & Coherent Inventory Stock (Coherent with Manager Portal)
+  const [storeMode, setStoreMode] = useState('OPEN');
+  const [storeAnnouncement, setStoreAnnouncement] = useState('');
+  const [inventoryStockMap, setInventoryStockMap] = useState({});
+  const [showOrderTracker, setShowOrderTracker] = useState(false);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [loadingTracker, setLoadingTracker] = useState(false);
 
   // Load database catalog
   useEffect(() => {
@@ -543,6 +585,169 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
     }
     loadCatalog();
   }, []);
+
+  // Coherent Store & Inventory Real-Time Sync (poll Supabase audit_logs & system_config)
+  const syncStoreAndInventory = useCallback(async () => {
+    try {
+      const [{ data: auditData }, { data: configData }] = await Promise.all([
+        supabase
+          .from('audit_logs')
+          .select('*')
+          .in('action', ['INVENTORY_UPDATED', 'STORE_STATUS_CHANGED'])
+          .order('created_at', { ascending: false }),
+        supabase.from('system_config').select('*'),
+      ]);
+
+      if (auditData) {
+        const stockMap = {};
+        for (const log of auditData) {
+          if (log.action === 'INVENTORY_UPDATED') {
+            if (log.entity_id && !stockMap[log.entity_id]) {
+              stockMap[log.entity_id] = log.new_value;
+            }
+            if (log.field_name && !stockMap[log.field_name]) {
+              stockMap[log.field_name] = log.new_value;
+            }
+          }
+        }
+        setInventoryStockMap(stockMap);
+
+        const modeLog = auditData.find(
+          (l) => l.action === 'STORE_STATUS_CHANGED' && (l.entity_id === 'STORE_MODE' || l.field_name === 'mode')
+        );
+        const annLog = auditData.find(
+          (l) => l.action === 'STORE_STATUS_CHANGED' && (l.entity_id === 'STORE_ANNOUNCEMENT' || l.field_name === 'announcement')
+        );
+
+        if (modeLog?.new_value) {
+          setStoreMode(modeLog.new_value);
+        } else if (configData) {
+          const cfgMode = configData.find((c) => c.config_key === 'STORE_MODE');
+          if (cfgMode?.config_value) setStoreMode(cfgMode.config_value);
+        }
+
+        if (annLog?.new_value) {
+          setStoreAnnouncement(annLog.new_value);
+        } else if (configData) {
+          const cfgAnn = configData.find((c) => c.config_key === 'STORE_ANNOUNCEMENT');
+          if (cfgAnn?.config_value) setStoreAnnouncement(cfgAnn.config_value);
+        }
+      }
+    } catch (e) {
+      console.warn('Store sync error:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    syncStoreAndInventory();
+    const interval = setInterval(syncStoreAndInventory, 4000);
+
+    const handleInv = (e) => {
+      const { itemId, itemName, stockStatus } = e.detail || {};
+      setInventoryStockMap((prev) => ({
+        ...prev,
+        ...(itemId ? { [itemId]: stockStatus } : {}),
+        ...(itemName ? { [itemName]: stockStatus } : {}),
+      }));
+    };
+
+    const handleMode = (e) => {
+      if (e.detail?.mode) setStoreMode(e.detail.mode);
+    };
+
+    const handleAnn = (e) => {
+      if (e.detail?.announcement !== undefined) setStoreAnnouncement(e.detail.announcement);
+    };
+
+    window.addEventListener('milky:inventory_update', handleInv);
+    window.addEventListener('milky:store_mode_update', handleMode);
+    window.addEventListener('milky:store_announcement_update', handleAnn);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('milky:inventory_update', handleInv);
+      window.removeEventListener('milky:store_mode_update', handleMode);
+      window.removeEventListener('milky:store_announcement_update', handleAnn);
+    };
+  }, [syncStoreAndInventory]);
+
+  // Fetch Patron Orders with Live Status for Real-Time Tracker Modal
+  const fetchRecentOrders = useCallback(async () => {
+    setLoadingTracker(true);
+    try {
+      const { data: sbOrders } = await supabase
+        .from('orders')
+        .select('*, order_items(*), users(*)')
+        .order('created_at', { ascending: false })
+        .limit(15);
+
+      const [{ data: sbPayments }, { data: sbAuditLogs }] = await Promise.all([
+        supabase.from('payments').select('*'),
+        supabase
+          .from('audit_logs')
+          .select('*')
+          .eq('action', 'STATUS_CHANGED')
+          .order('created_at', { ascending: false }),
+      ]);
+
+      if (sbOrders) {
+        let sessionIds = [];
+        try {
+          sessionIds = JSON.parse(localStorage.getItem('milky_placed_orders') || '[]');
+        } catch (e) {}
+
+        const userEmail = currentUser?.email ? normalizeUserEmail(currentUser.email) : null;
+        const filtered = sbOrders.filter((o) => {
+          if (userEmail && o.users?.email && normalizeUserEmail(o.users.email) === userEmail) return true;
+          if (currentUser?.id && o.patron_id === currentUser.id) return true;
+          if (sessionIds.includes(o.id) || sessionIds.includes(o.order_number)) return true;
+          return !currentUser;
+        });
+
+        const mapped = filtered.map((o) => {
+          const payment = sbPayments?.find((p) => p.order_id === o.id);
+          const latestAudit = sbAuditLogs?.find(
+            (l) => l.entity_id === o.id || l.entity_id === o.order_number
+          );
+
+          let status = o.status || 'PENDING_PAYMENT';
+          if (latestAudit?.new_value) {
+            status = latestAudit.new_value.split(' ')[0];
+          } else if (payment?.status === 'SUCCESS' && status === 'PENDING_PAYMENT') {
+            status = 'PAID';
+          }
+
+          return {
+            ...o,
+            orderId: o.id,
+            orderNumber: o.order_number,
+            status,
+            payment,
+            totals: {
+              total: Number(o.total_amount || 0),
+              subtotal: Number(o.subtotal_amount || 0),
+              vat: Number(o.vat_amount || 0),
+              discountAmount: Number(o.discount_amount || 0),
+              deliveryFee: Number(o.delivery_fee || 0),
+            },
+            items: (o.order_items || []).map((it) => ({
+              number: it.drink_number,
+              flavour: it.flavour_name_snapshot,
+              consistency: it.consistency_name_snapshot,
+              topping: it.topping_name_snapshot,
+              cost: Number(it.item_total || 0),
+            })),
+          };
+        });
+
+        setRecentOrders(mapped);
+      }
+    } catch (e) {
+      console.warn('Recent orders tracker error:', e);
+    } finally {
+      setLoadingTracker(false);
+    }
+  }, [currentUser]);
 
   // Auto-persist order draft whenever configuration changes
   useEffect(() => {
@@ -790,20 +995,31 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
     setActiveSlotIndex(index);
   }
 
-  // Calculate volume discount tier automatically based on pack size
+  // Calculate volume discount tier or frequent customer discount automatically (URS 3.4.5)
   const effectiveDiscount = useMemo(() => {
     if (appliedDiscount) return appliedDiscount;
 
-    // Check volume discounts: 6 drinks = 15%, 4 drinks = 10%
+    // 1. Check Frequent Customer Loyalty Tiers (URS 3.4.5)
+    if (patronCompletedOrders >= 10) {
+      return { discount_percent: 15, tier_name: `Frequent Customer VIP Tier (15% Off - ${patronCompletedOrders} completed orders)` };
+    }
+    if (patronCompletedOrders >= 5) {
+      return { discount_percent: 10, tier_name: `Frequent Customer Tier 2 (10% Off - ${patronCompletedOrders} completed orders)` };
+    }
+    if (patronCompletedOrders >= 3) {
+      return { discount_percent: 5, tier_name: `Frequent Customer Tier 1 (5% Off - ${patronCompletedOrders} completed orders)` };
+    }
+
+    // 2. Volume Pack discount
     const filledCount = drinks.filter((d) => d.flavourId).length;
     if (filledCount >= 6) {
-      return { discount_percent: 15, tier_name: '6-Pack VIP Discount' };
+      return { discount_percent: 15, tier_name: '6-Pack Volume Discount (15% Off)' };
     }
     if (filledCount >= 4) {
-      return { discount_percent: 10, tier_name: '4-Pack Family Discount' };
+      return { discount_percent: 10, tier_name: '4-Pack Volume Discount (10% Off)' };
     }
     return null;
-  }, [drinks, appliedDiscount]);
+  }, [drinks, appliedDiscount, patronCompletedOrders]);
 
   // Apply manual discount code
   function handleApplyDiscountCode() {
@@ -889,6 +1105,10 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
   async function handleProceedToPayment() {
     if (!currentUser) {
       setShowAuthModal(true);
+      return;
+    }
+    if (storeMode === 'PAUSED') {
+      setSubmitError('The kitchen is temporarily paused while baristas craft active orders. Please check back shortly!');
       return;
     }
     if (!isOrderReady || !isFulfillmentValid) return;
@@ -1109,22 +1329,97 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         await supabase.from('orders').update({ status: 'PAID' }).eq('id', pendingOrderData.orderId);
       }
 
-      setPlacedOrder({
+      const customerEmail = normalizeUserEmail(currentUser?.email);
+      const customerName = (cardholderName || currentUser?.name || currentUser?.first_name || 'Valued Customer').trim();
+
+      const confirmedOrder = {
         ...pendingOrderData,
+        customerEmail,
+        customerName,
         status: 'PAID',
         payment: {
           receiptNumber: receiptNum,
           transactionReference: txnRef,
           settledAt: settledTimestamp,
-          paymentMethod: paymentMethod === 'CARD' ? `Visa ending in 4242 (${cardholderName})` : 'Instant EFT (Verified)',
+          paymentMethod: paymentMethod === 'CARD' ? `Visa ending in 4242 (${customerName})` : 'Instant EFT (Verified)',
           paymentStatus: 'PAID',
+          receiptEmailed: false,
         },
-      });
+      };
 
+      setPlacedOrder(confirmedOrder);
       clearOrderDraft();
+
+      // Remember order in local session for live tracker drawer
+      try {
+        const prev = JSON.parse(localStorage.getItem('milky_placed_orders') || '[]');
+        if (!prev.includes(confirmedOrder.orderId)) {
+          prev.unshift(confirmedOrder.orderId);
+          localStorage.setItem('milky_placed_orders', JSON.stringify(prev.slice(0, 20)));
+        }
+      } catch (e) {}
+
+      // Register live STATUS_CHANGED in Supabase audit_logs & broadcast
+      try {
+        await supabase.from('audit_logs').insert([
+          {
+            action: 'STATUS_CHANGED',
+            actor_role: 'CUSTOMER',
+            entity_type: 'orders',
+            entity_id: pendingOrderData.orderId,
+            field_name: 'status',
+            new_value: 'PAID',
+          },
+        ]);
+        window.dispatchEvent(
+          new CustomEvent('milky:order_status_update', {
+            detail: { orderId: pendingOrderData.orderId, newStatus: 'PAID' },
+          })
+        );
+      } catch (e) {}
 
       setShowPaymentModal(false);
       setPendingOrderData(null);
+
+      // Automated Receipt & Tax Invoice Email Dispatch
+      if (customerEmail) {
+        fetch('/api/orders/email-receipt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerEmail,
+            customerName,
+            order: confirmedOrder,
+            receipt: confirmedOrder.payment,
+          }),
+        })
+          .then((res) => res.text())
+          .then((text) => {
+            let resData = {};
+            try {
+              resData = text ? JSON.parse(text) : {};
+            } catch {
+              console.warn('API returned non-JSON response:', text);
+              return;
+            }
+            if (resData.success) {
+              setPlacedOrder((prev) => (prev ? {
+                ...prev,
+                payment: { ...prev.payment, receiptEmailed: true },
+              } : prev));
+
+              if (isUuid(pendingOrderData.orderId)) {
+                supabase
+                  .from('payments')
+                  .update({ receipt_emailed: true })
+                  .eq('order_id', pendingOrderData.orderId)
+                  .then(() => {})
+                  .catch((err) => console.warn('Could not update receipt_emailed flag in database:', err));
+              }
+            }
+          })
+          .catch((emailErr) => console.warn('Order confirmation email trigger failed:', emailErr));
+      }
     } catch (err) {
       console.error('Payment error:', err);
       setPaymentError(err.message || 'Payment processing failed. Please retry.');
@@ -1168,6 +1463,8 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
             {[
               { label: 'Home', path: '/' },
               { label: 'Orders', path: '/orders' },
+              ...(currentUser ? [{ label: 'My Orders', path: '/my-orders' }] : []),
+              ...(currentUser?.role === 'MANAGER' || currentUser?.role === 'STAFF' ? [{ label: 'Manager Portal', path: '/management' }] : []),
               { label: 'Flavours', path: '/flavours' },
               { label: 'Philosophy', path: '/philosophy' },
             ].map((tab) => {
@@ -1251,6 +1548,8 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
           {[
             { label: 'Home', path: '/' },
             { label: 'Orders', path: '/orders' },
+            ...(currentUser ? [{ label: 'My Orders', path: '/my-orders' }] : []),
+            ...(currentUser?.role === 'MANAGER' || currentUser?.role === 'STAFF' ? [{ label: 'Manager Portal', path: '/management' }] : []),
             { label: 'Flavours', path: '/flavours' },
             { label: 'Philosophy', path: '/philosophy' },
           ].map((tab) => {
@@ -1276,6 +1575,32 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
 
         {/* Right Action Icons / Buttons */}
         <div className="box-nav-actions">
+          <button
+            type="button"
+            className="box-btn-ghost-pill tracker-nav-btn"
+            onClick={() => {
+              setShowOrderTracker(true);
+              fetchRecentOrders();
+            }}
+            title="Track Orders & Live Kitchen Status"
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span>Track Orders</span>
+          </button>
+
           <button
             type="button"
             className="box-btn-ghost-pill cart-btn"
@@ -1324,6 +1649,34 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
 
       {/* Main Studio Area */}
       <main className="box-main-content">
+        {/* Real-time Store Operational Notices (Synchronized with Manager Portal) */}
+        {storeMode === 'PAUSED' && (
+          <div className="store-operational-banner banner-paused" role="alert">
+            <span className="banner-icon-pill">PAUSED</span>
+            <div className="banner-text-wrap">
+              <strong>Kitchen Intake Temporarily Paused:</strong> Baristas are hand-churning high order volumes at capacity. Recipe builder is open, but checkout is temporarily held.
+            </div>
+          </div>
+        )}
+
+        {storeMode === 'BUSY' && (
+          <div className="store-operational-banner banner-rush" role="status">
+            <span className="banner-icon-pill">RUSH</span>
+            <div className="banner-text-wrap">
+              <strong>Kitchen Rush Active:</strong> Extended preparation buffer in effect (~15-20 min). Shakes are churned to order.
+            </div>
+          </div>
+        )}
+
+        {storeAnnouncement && (
+          <div className="store-operational-banner banner-announcement" role="status">
+            <span className="banner-icon-pill">NOTICE</span>
+            <div className="banner-text-wrap">
+              <strong>Milky Broadcast:</strong> {storeAnnouncement}
+            </div>
+          </div>
+        )}
+
         {/* Header & Gamified Discount Meter */}
         <div className="box-header-row">
           <div className="box-title-pack-header">
@@ -1612,12 +1965,18 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                   {flavours.map((item) => {
                     const isSelected = String(activeDrink.flavourId) === String(item.id);
                     const visual = getFlavourVisual(getItemName(item));
+                    const isOutOfStock =
+                      inventoryStockMap[item.id] === 'OUT_OF_STOCK' ||
+                      inventoryStockMap[getItemName(item)] === 'OUT_OF_STOCK' ||
+                      item.is_active === false;
                     return (
                       <button
                         key={item.id}
                         type="button"
-                        className={`btn-choice-card ${isSelected ? 'is-selected' : ''}`}
-                        onClick={() => updateActiveDrink('flavourId', item.id)}
+                        disabled={isOutOfStock}
+                        className={`btn-choice-card ${isSelected ? 'is-selected' : ''} ${isOutOfStock ? 'is-sold-out' : ''}`}
+                        onClick={() => !isOutOfStock && updateActiveDrink('flavourId', item.id)}
+                        title={isOutOfStock ? `${getItemName(item)} is currently sold out` : ''}
                       >
                         <div className="choice-card-thumb-wrap">
                           <img src={visual.image} alt={visual.alt} className="choice-card-thumb" />
@@ -1625,6 +1984,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                         <div className="choice-card-content">
                           <span className="choice-card-title">{getItemName(item)}</span>
                           <span className="choice-card-meta">{formatCurrency(getItemPrice(item))}</span>
+                          {isOutOfStock && <span className="sold-out-badge">Sold Out</span>}
                         </div>
                       </button>
                     );
@@ -1663,16 +2023,23 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                   {toppings.map((item) => {
                     const isSelected = String(activeDrink.toppingId) === String(item.id);
                     const extraPrice = getItemPrice(item);
+                    const isOutOfStock =
+                      inventoryStockMap[item.id] === 'OUT_OF_STOCK' ||
+                      inventoryStockMap[getItemName(item)] === 'OUT_OF_STOCK' ||
+                      item.is_active === false;
                     return (
                       <button
                         key={item.id}
                         type="button"
-                        className={`btn-topping-dropper ${isSelected ? 'is-selected' : ''}`}
-                        onClick={() => handleSelectTopping(item)}
+                        disabled={isOutOfStock}
+                        className={`btn-topping-dropper ${isSelected ? 'is-selected' : ''} ${isOutOfStock ? 'is-sold-out' : ''}`}
+                        onClick={() => !isOutOfStock && handleSelectTopping(item)}
+                        title={isOutOfStock ? `${getItemName(item)} is currently sold out` : ''}
                       >
                         {isSelected && <IconCheck />}
                         <span>{getItemName(item)}</span>
                         {extraPrice > 0 && <span style={{ opacity: 0.8 }}>+{formatCurrency(extraPrice)}</span>}
+                        {isOutOfStock && <span className="sold-out-badge">Sold Out</span>}
                       </button>
                     );
                   })}
@@ -1953,10 +2320,13 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                   <span>Subtotal ({configuredDrinks.length} {configuredDrinks.length === 1 ? 'Milkshake' : 'Milkshakes'})</span>
                   <span>{formatCurrency(orderTotals.subtotal)}</span>
                 </div>
-                {orderTotals.discountAmount > 0 && (
-                  <div className="receipt-row is-discount">
-                    <span>{effectiveDiscount?.tier_name || 'Volume Discount'}</span>
-                    <span>-{formatCurrency(orderTotals.discountAmount)}</span>
+                <div className={`receipt-row ${orderTotals.discountAmount > 0 ? 'is-discount' : ''}`}>
+                  <span>Frequent Customer Discount</span>
+                  <span>{orderTotals.discountAmount > 0 ? `-${formatCurrency(orderTotals.discountAmount)}` : formatCurrency(0)}</span>
+                </div>
+                {orderTotals.discountAmount > 0 && effectiveDiscount?.tier_name && (
+                  <div style={{ fontSize: '11px', color: '#047857', padding: '0 0 6px 0', fontWeight: '600' }}>
+                    Applied: {effectiveDiscount.tier_name}
                   </div>
                 )}
                 <div className="receipt-row">
@@ -1985,9 +2355,13 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                 type="button"
                 className="btn-final-checkout"
                 onClick={handleProceedToPayment}
-                disabled={submitting || !isOrderReady || !isFulfillmentValid}
+                disabled={submitting || !isOrderReady || !isFulfillmentValid || storeMode === 'PAUSED'}
               >
-                {submitting ? 'Preparing Checkout...' : `Proceed to Secure Payment (${formatCurrency(orderTotals.total)}) \u2192`}
+                {storeMode === 'PAUSED'
+                  ? 'Kitchen Intake Temporarily Paused'
+                  : submitting
+                  ? 'Preparing Checkout...'
+                  : `Proceed to Secure Payment (${formatCurrency(orderTotals.total)}) \u2192`}
               </button>
 
               <div className="checkout-security-footnote">
@@ -2032,6 +2406,7 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
                     id="card-name"
                     type="text"
                     className="payment-input"
+                    placeholder="Name on card"
                     value={cardholderName}
                     onChange={(e) => setCardholderName(e.target.value)}
                   />
@@ -2109,6 +2484,126 @@ export default function OrderPlacement({ currentUser, onSignOut, onBackToLanding
         onAuthSuccess={handleAuthModalSuccess}
         packSummary={`Your ${packSize}-Pack Box (${filledDrinksCount} Shakes)`}
       />
+
+      {/* Live Order Tracker Modal */}
+      {showOrderTracker && (
+        <div className="order-tracker-overlay" onClick={() => setShowOrderTracker(false)}>
+          <div className="order-tracker-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="tracker-dialog-header">
+              <div className="tracker-brand-tag">
+                <span className="tracker-brand-cursive">milky</span>
+                <span className="tracker-header-title">Live Kitchen Tracker &amp; Order History</span>
+              </div>
+              <button
+                type="button"
+                className="btn-tracker-close"
+                onClick={() => setShowOrderTracker(false)}
+                aria-label="Close Order Tracker"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="tracker-dialog-body">
+              <div className="tracker-toolbar">
+                <p className="tracker-intro">
+                  Live real-time status of your orders directly connected to our kitchen operations:
+                </p>
+                <button
+                  type="button"
+                  className="btn-tracker-refresh"
+                  onClick={fetchRecentOrders}
+                  disabled={loadingTracker}
+                >
+                  {loadingTracker ? 'Updating...' : 'Refresh Status'}
+                </button>
+              </div>
+
+              {loadingTracker && recentOrders.length === 0 ? (
+                <div className="tracker-empty-state">
+                  <div className="tracker-spinner" />
+                  <p>Connecting to kitchen queue...</p>
+                </div>
+              ) : recentOrders.length === 0 ? (
+                <div className="tracker-empty-state">
+                  <p>No recent orders found. Place your first artisan milkshake order!</p>
+                </div>
+              ) : (
+                <div className="tracker-orders-list">
+                  {recentOrders.map((ord) => (
+                    <div key={ord.id || ord.orderNumber} className="tracker-order-card">
+                      <div className="tracker-order-top">
+                        <div className="tracker-order-num-time">
+                          <span className="tracker-order-num">#{ord.orderNumber}</span>
+                          <span className="tracker-order-time">
+                            {new Date(ord.created_at).toLocaleString([], {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                        </div>
+                        <div className="tracker-order-total-badge">
+                          <span className={`tracker-status-pill status-${(ord.status || 'PAID').toLowerCase()}`}>
+                            {ord.status || 'PAID'}
+                          </span>
+                          <strong className="tracker-order-amt">{formatCurrency(ord.totals?.total ?? ord.total_amount ?? 0)}</strong>
+                        </div>
+                      </div>
+
+                      {/* 4-Step Visual Kitchen Progress */}
+                      <div className="tracker-stepper">
+                        <div className={`tracker-step ${['PAID', 'PREPARING', 'READY', 'COLLECTED'].includes(ord.status) ? 'is-active' : ''}`}>
+                          <span className="tracker-dot" />
+                          <span className="tracker-step-lbl">Confirmed &amp; Paid</span>
+                        </div>
+                        <div className={`tracker-bar ${['PREPARING', 'READY', 'COLLECTED'].includes(ord.status) ? 'is-fill' : ''}`} />
+                        <div className={`tracker-step ${['PREPARING', 'READY', 'COLLECTED'].includes(ord.status) ? 'is-active' : ''}`}>
+                          <span className="tracker-dot" />
+                          <span className="tracker-step-lbl">Blending Shakes</span>
+                        </div>
+                        <div className={`tracker-bar ${['READY', 'COLLECTED'].includes(ord.status) ? 'is-fill' : ''}`} />
+                        <div className={`tracker-step ${['READY', 'COLLECTED'].includes(ord.status) ? 'is-active' : ''}`}>
+                          <span className="tracker-dot" />
+                          <span className="tracker-step-lbl">Ready for Pick Up</span>
+                        </div>
+                        <div className={`tracker-bar ${ord.status === 'COLLECTED' ? 'is-fill' : ''}`} />
+                        <div className={`tracker-step ${ord.status === 'COLLECTED' ? 'is-active' : ''}`}>
+                          <span className="tracker-dot" />
+                          <span className="tracker-step-lbl">Collected</span>
+                        </div>
+                      </div>
+
+                      {/* Drinks preview */}
+                      <div className="tracker-drinks-list">
+                        {(ord.items || []).map((it, idx) => (
+                          <span key={idx} className="tracker-drink-tag">
+                            {it.flavour} ({it.consistency}{it.topping ? `, ${it.topping}` : ''})
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="tracker-actions">
+                        <button
+                          type="button"
+                          className="btn-view-receipt"
+                          onClick={() => {
+                            setPlacedOrder(ord);
+                            setShowOrderTracker(false);
+                          }}
+                        >
+                          View Thermal Receipt
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

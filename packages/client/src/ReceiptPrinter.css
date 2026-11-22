@@ -540,6 +540,223 @@
   transform: translateY(-1px);
 }
 
+.btn-printer-action.is-email {
+  background: #FFFDF9;
+  color: var(--printer-cocoa);
+  border: 1.5px solid rgba(186, 114, 76, 0.45);
+  box-shadow: 0 2px 8px rgba(46, 26, 17, 0.05);
+}
+
+.btn-printer-action.is-email:hover {
+  border-color: var(--printer-caramel);
+  background: #FFFFFF;
+  color: var(--printer-caramel);
+  transform: translateY(-1px);
+}
+
+/* Email receipt banner & prompt */
+.receipt-email-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 18px;
+  width: 100%;
+  max-width: 440px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.receipt-email-banner.is-success {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.receipt-email-banner.is-error {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.receipt-email-prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  width: 100%;
+  max-width: 440px;
+  box-sizing: border-box;
+}
+
+.receipt-email-input {
+  flex: 1;
+  padding: 10px 16px;
+  font-size: 13px;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(186, 114, 76, 0.4);
+  background: #FFFFFF;
+  color: var(--printer-cocoa);
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.receipt-email-input:focus {
+  border-color: var(--printer-caramel);
+  box-shadow: 0 0 0 3px rgba(186, 114, 76, 0.15);
+}
+
+/* Live Order Status Display on Machine Screen */
+.printer-live-status-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.printer-live-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.printer-live-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--printer-screen-muted);
+}
+
+.printer-live-pill {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.printer-live-pill.status-paid {
+  background: #1E3A8A;
+  color: #BFDBFE;
+}
+
+.printer-live-pill.status-preparing {
+  background: #78350F;
+  color: #FDE68A;
+  animation: pulsePreparing 2s infinite ease-in-out;
+}
+
+.printer-live-pill.status-ready {
+  background: #14532D;
+  color: #BBF7D0;
+  animation: pulseReady 1.5s infinite ease-in-out;
+}
+
+.printer-live-pill.status-collected {
+  background: #312E81;
+  color: #E0E7FF;
+}
+
+@keyframes pulsePreparing {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.03); }
+}
+
+@keyframes pulseReady {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.05); }
+}
+
+.printer-stepper-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-top: 4px;
+}
+
+.stepper-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.stepper-step.is-complete {
+  opacity: 1;
+}
+
+.step-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #523D33;
+  transition: background-color 0.3s ease;
+}
+
+.stepper-step.is-complete .step-dot {
+  background: #10B981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.step-name {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--printer-screen-text);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.stepper-bar {
+  flex: 1;
+  height: 2px;
+  background: #38241B;
+  margin: 0 4px;
+  margin-bottom: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.stepper-bar.is-fill {
+  background: #10B981;
+}
+
+/* Live Paper Receipt Tag */
+.paper-status-tag {
+  font-weight: 800;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.paper-status-tag.status-paid {
+  color: #1E40AF;
+  background: #EFF6FF;
+}
+
+.paper-status-tag.status-preparing {
+  color: #B45309;
+  background: #FEF3C7;
+}
+
+.paper-status-tag.status-ready {
+  color: #15803D;
+  background: #DCFCE7;
+}
+
+.paper-status-tag.status-collected {
+  color: #4338CA;
+  background: #EEF2FF;
+}
+
 /* Print Styles */
 @media print {
   body * {
